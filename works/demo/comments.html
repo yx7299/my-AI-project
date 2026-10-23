@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>商品评论采集结果</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23F4482B'/%3E%3Cpath d='M16 5.5l2.7 7.8 7.8 2.7-7.8 2.7L16 26.5l-2.7-7.8L5.5 16l7.8-2.7z' fill='%23fff'/%3E%3C/svg%3E" />
+<style>
+
+:root{--paper:#F8F4EC;--ink:#23203a;--ink-soft:#6b6580;--accent:#F4482B}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;background:var(--paper);color:var(--ink);line-height:1.7;padding:22px clamp(14px,3vw,28px) 30px}
+.mono{font-family:"DM Mono",monospace}
+.top{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+.top h1{font-size:clamp(19px,3vw,26px);font-weight:900;letter-spacing:-.5px}
+.top .tag{font-family:"DM Mono",monospace;font-size:11px;color:var(--ink-soft);border:2px solid var(--ink);border-radius:999px;padding:2px 12px;background:#fff}
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 18px}
+.chip{background:#fff;border:2px solid var(--ink);border-radius:14px;padding:10px 16px;box-shadow:3px 3px 0 rgba(35,32,58,.14);min-width:96px}
+.chip b{display:block;font-size:20px;font-weight:900;line-height:1.2}
+.chip span{font-size:12px;color:var(--ink-soft);font-weight:700}
+
+.search{width:100%;max-width:420px;font:inherit;font-size:14px;border:2px solid var(--ink);border-radius:999px;padding:9px 18px;background:#fff;margin-bottom:14px;outline:none}
+.search:focus{box-shadow:3px 3px 0 var(--accent)}
+.keys{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.kchip{font:inherit;font-size:13px;font-weight:700;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:4px 14px;cursor:pointer;transition:.15s}
+.kchip:hover{transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--ink)}
+.kchip.on{background:var(--accent);color:#fff}
+.cmt{background:#fff;border:2px solid var(--ink);border-radius:18px;padding:16px 20px;margin-bottom:12px;box-shadow:4px 4px 0 rgba(35,32,58,.12)}
+.cmt .no{font-family:"DM Mono",monospace;font-size:12px;color:var(--ink-soft);margin-bottom:4px}
+.cmt p{font-size:15px;color:#3a3550}
+.count{font-size:13px;color:var(--ink-soft);font-weight:700;margin:4px 0 14px}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1 id="pt" style="max-width:22em"></h1>
+  <span class="tag">DEMO · 真实采集数据</span>
+</div>
+<div class="chips">
+  <div class="chip"><b>20</b><span>采集评论</span></div>
+  <div class="chip"><b>8</b><span>命中关键词</span></div>
+  <div class="chip"><b>259</b><span>最长字数</span></div>
+</div>
+<input class="search" id="q" placeholder="搜索评论关键词…"/>
+<div class="keys" id="keys"></div>
+<div class="count" id="cnt"></div>
+<div id="list"></div>
+<script>
+var COMMENTS = ["续航能力：用了两天，感觉还行 外观材质：喜欢它的设计 佩戴感受：还是不能戴的太久，还是会痛","冲着耳朵不疼买的，目前最长时间3小时，真的不疼，声音也很清晰，旁边人听不听得到不知道，没测试过，一对可以磁吸，防丢挺好的，需要自己买个壳系起来，小小一个容易找不到，鸿蒙系统需要卓易通下载软件，别忘了啊","刚收到直播间买的东西，拆开看和描述的一样，没毛病～物流也挺快的，商家回复消息也及时，整体满意～","外观很有质感，佩戴也特别舒适，最重要的是音质也特别好也比较降噪，特别喜欢🥰","收到佩戴不舒服联系客服马上响应，耐心教调节佩戴方式。耳夹款跑步狂晃不掉，办公室开会听得清环境音，续航一天通勤够用，一年质保安心，性价比拉满！官方售后靠谱，充电仓轻微划痕反馈后直接换新，全程没有扯皮。耳机音质清晰，出汗多也不怕进水，日常办公健身两用，倍思的品控和售后值得回购。","收到货了，物流很快，客服也非常好，包装很严实，还送了贴纸","C桥大小非常合适，很轻，音质也不赖，戴久了也没啥感觉，满意","趁着做活动领券的时候买的，价格好划算，比微商便宜好多。反正一样的东西，当然价格低一些比较好呀。店家多做这样的活动呀 这家店还好吧。来买过几次了，服 务老客户非常周到，以后还常来！发货速度很快，东西包装的很好，价格优惠，我很满意，还会回购掌柜态度很专业热情，有问必答，回复也很快，我问了不少问题，他都不觉得烦，都会认真回答我，这点我向掌柜表示由衷的敬意，这样的好掌柜可不多。再说宝贝，正是我需要的，收到的时候包装完整，打开后让我惊喜的是，宝贝比我想象中的还要好！不得不得竖起大拇指这家店的东西很好，发货比较快，物流也很快","佩戴很舒适 音质也很好 外观材质：耐看","颜色好看，音质也不错，戴在耳朵上也不会疼","效果超级棒，颜值还高，一直在她家买东西，真心不错！","质量蛮好的，声音不错满足需求，耳机很轻，外观也很好看","商品好评文案 商品和商家描述完全一致，没有差别，降噪效果很让人满意，使用体验很棒! 商家的物流发货速度很快，包装完好没有损坏，快递配送也很及时，服务态度非常好，整体购物体验很舒心，推荐大家入手~","续航能力：很强， 佩戴感受：我戴一天也都没不适感，很舒服 外观材质：颜值很高，很喜欢","耳机很好用戴久了耳朵也不痛，很轻，就是音质感觉不太好，听书听歌的时候像音响那种，接电话还蛮不错","送朋友的朋友很喜欢。外观材质：非常好带着很方便。","佩戴挺舒服的，音质不错，充一次电能用很久","之前买过一次了，不小心搞丢了，还是选择复购一副相同的，我比较在意耳机佩戴舒适感和续航，这副耳机再这个方面比较突出，很满意","耳机很好看，也很实用，音效和使用感都很好，非常满意","\"单隻耳机的音量控制按扭 机械回弹力 不足 按压起来手感回馈异常, 但控制功能逻辑正常 品控需要加强\""];
+document.getElementById("pt").textContent = "【政府补贴15%】倍思MC2Air耳夹式蓝牙耳机开放无线气骨传导运动";
+var kw = "";
+var keysBox = document.getElementById("keys");
+var HITS = [{"k":"音质","n":7},{"k":"舒适","n":3},{"k":"续航","n":4},{"k":"降噪","n":2},{"k":"佩戴","n":7},{"k":"外观","n":6},{"k":"物流","n":4},{"k":"满意","n":6}];
+HITS.forEach(function(h){
+  var b = document.createElement("button");
+  b.className = "kchip"; b.textContent = h.k + " ×" + h.n;
+  b.onclick = function(){
+    kw = (kw === h.k ? "" : h.k);
+    [].forEach.call(keysBox.children, function(x){ x.classList.remove("on"); });
+    if (kw) b.classList.add("on");
+    document.getElementById("q").value = kw || "";
+    render();
+  };
+  keysBox.appendChild(b);
+});
+document.getElementById("q").oninput = function(){ kw = this.value.trim(); [].forEach.call(keysBox.children, function(x){ x.classList.remove("on"); }); render(); };
+function render(){
+  var q = kw;
+  var rows = q ? COMMENTS.filter(function(c){ return c.indexOf(q) > -1; }) : COMMENTS;
+  document.getElementById("cnt").textContent = "显示 " + rows.length + " / " + COMMENTS.length + " 条" + (q ? "（含「" + q + "」）" : "");
+  var list = document.getElementById("list");
+  if (!rows.length) { list.innerHTML = '<div class="cmt"><p style="color:#6b6580">没有命中的评论，换个词试试。</p></div>'; return; }
+  list.innerHTML = rows.map(function(c, i){
+    var idx = COMMENTS.indexOf(c) + 1;
+    var safe = c.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return '<div class="cmt"><div class="no">#' + String(idx).padStart(2, "0") + "</div><p>" + safe + "</p></div>";
+  }).join("");
+}
+render();
+</script>
+</body>
+</html>

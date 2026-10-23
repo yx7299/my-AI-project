@@ -1,0 +1,1168 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="个人作品集 · 做过的东西都在这里" />
+<title>个人作品集</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23F4482B'/%3E%3Cpath d='M16 5.5l2.7 7.8 7.8 2.7-7.8 2.7L16 26.5l-2.7-7.8L5.5 16l7.8-2.7z' fill='%23fff'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet" />
+<style>
+/* =====================================================
+   独立设计：贴纸/杂志编辑风 + 便当格 + 成长节点 + 色块分区
+   配色：暖白底 + 硬朗撞色（珊瑚红/橙/黄/电光青/钴蓝/柠檬绿），去粉嫩
+   ===================================================== */
+:root{
+  --paper:#F8F4EC;
+  --ink:#23203a;
+  --ink-soft:#6b6580;
+  --line:#23203a;
+  --red:#F4482B;     --red-bg:#FCE0DA;
+  --orange:#FF8A1E;  --orange-bg:#FFE9D2;
+  --yellow:#FFC21A;  --yellow-bg:#FFF1C9;
+  --teal:#10B6A6;    --teal-bg:#D6F1ED;
+  --blue:#2E6FE6;    --blue-bg:#DFE8FB;
+  --lime:#7CCB1E;    --lime-bg:#EDF5D6;
+  --g1:var(--red); --g2:var(--orange); --g3:var(--yellow);
+  --shadow:0 14px 40px -18px rgba(35,32,58,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--paper);color:var(--ink);line-height:1.75;overflow-x:hidden;
+}
+.mono{font-family:"DM Mono",monospace}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--yellow);color:var(--ink)}
+
+/* ============ 顶部胶囊悬浮导航 ============ */
+.nav-pill{
+  position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:60;
+  display:flex;align-items:center;gap:4px;padding:8px 10px;border-radius:999px;
+  background:rgba(255,255,255,.85);backdrop-filter:blur(14px);
+  border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink);
+}
+.nav-pill .logo{
+  font-family:"DM Mono",monospace;font-weight:500;font-size:14px;color:#fff;
+  background:var(--ink);border-radius:999px;padding:6px 14px;margin-right:4px;white-space:nowrap;
+}
+.nav-pill a.nl{padding:7px 14px;border-radius:999px;font-weight:700;font-size:14px;transition:.2s;white-space:nowrap}
+.nav-pill a.nl:hover{background:var(--yellow-bg)}
+.nav-pill a.nl.active{background:var(--ink);color:#fff}
+.nav-burger{display:none;background:none;border:0;cursor:pointer;padding:8px}
+.nav-burger span{display:block;width:22px;height:3px;background:var(--ink);border-radius:3px;margin:4px 0}
+.m-menu{position:fixed;inset:0;z-index:55;background:rgba(248,244,236,.97);backdrop-filter:blur(16px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;opacity:0;pointer-events:none;transition:.3s}
+.m-menu.open{opacity:1;pointer-events:auto}
+.m-menu a{font-size:26px;font-weight:900}
+
+/* ============ Hero ============ */
+.hero{max-width:1200px;margin:0 auto;padding:150px clamp(20px,5vw,48px) 30px;position:relative}
+.hero .kicker{display:inline-flex;align-items:center;gap:10px;font-family:"DM Mono",monospace;font-size:13px;letter-spacing:2px;font-weight:500}
+.hero .kicker i{width:34px;height:0;border-top:2px dashed var(--ink);display:inline-block}
+.hero h1{
+  font-size:clamp(46px,9vw,108px);font-weight:900;line-height:1.06;letter-spacing:-1px;margin:18px 0 10px;
+}
+.hero h1 .hl{position:relative;display:inline-block;padding:0 .12em;z-index:0}
+.hero h1 .hl::before{
+  content:"";position:absolute;left:-2%;right:-2%;bottom:.06em;height:.42em;z-index:-1;
+  background:linear-gradient(90deg,var(--g1),var(--g2));border-radius:.2em;transform:rotate(-1.2deg);
+}
+.hero .sub{font-size:clamp(16px,2.2vw,20px);color:var(--ink-soft);max-width:34em}
+.hero-cta{display:flex;gap:16px;flex-wrap:wrap;margin-top:30px;align-items:center}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;font-weight:900;font-size:16px;
+  padding:15px 30px;border-radius:16px;border:2px solid var(--ink);cursor:pointer;transition:.2s;
+}
+.btn.solid{background:var(--ink);color:#fff;box-shadow:5px 5px 0 var(--g1)}
+.btn.ghost{background:#fff;box-shadow:5px 5px 0 var(--yellow)}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:8px 8px 0 var(--g2)}
+.sticker{position:absolute;font-weight:900;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:8px 16px;box-shadow:4px 4px 0 var(--ink);font-size:14px;white-space:nowrap}
+.sticker.s1{top:120px;right:24%;transform:rotate(8deg);background:var(--yellow-bg)}
+.sticker.s2{top:250px;right:8%;transform:rotate(-7deg);background:var(--teal-bg)}
+.badge-spin{position:absolute;right:clamp(10px,6vw,80px);top:110px;width:130px;height:130px;animation:spin 16s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:900px){.sticker,.badge-spin{display:none}}
+
+/* ============ 跑马灯糖带 ============ */
+.marquee{
+  margin:44px auto 0;max-width:1200px;border-top:2px solid var(--ink);border-bottom:2px solid var(--ink);
+  background:linear-gradient(90deg,var(--red-bg),var(--yellow-bg),var(--teal-bg));
+  overflow:hidden;padding:13px 0;
+}
+.marquee-track{display:inline-flex;gap:0;white-space:nowrap;animation:mq 22s linear infinite;width:max-content}
+@keyframes mq{to{transform:translateX(-50%)}}
+.marquee-track span{font-family:"DM Mono",monospace;font-weight:500;font-size:15px;padding:0 26px;position:relative}
+.marquee-track span::after{content:"✦";position:absolute;right:-8px;color:var(--red)}
+
+/* ============ 票根统计条 ============ */
+.ticket{max-width:1200px;margin:46px auto 0;padding:0 clamp(20px,5vw,48px)}
+.ticket-inner{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  background:#fff;border:2px dashed var(--ink);border-radius:24px;overflow:hidden;box-shadow:var(--shadow);
+}
+.ticket-cell{padding:30px 18px;text-align:center;position:relative}
+.ticket-cell+.ticket-cell{border-left:2px dashed var(--ink)}
+.ticket-cell b{display:block;font-family:"DM Mono",monospace;font-size:clamp(30px,4.5vw,50px);font-weight:500;line-height:1.1}
+.ticket-cell span{font-size:14px;color:var(--ink-soft);font-weight:700}
+.ticket-cell:nth-child(1) b{color:var(--red)}
+.ticket-cell:nth-child(2) b{color:var(--orange)}
+.ticket-cell:nth-child(3) b{color:var(--teal)}
+.ticket-cell:nth-child(4) b{color:var(--blue)}
+@media(max-width:760px){
+  .ticket-inner{grid-template-columns:1fr 1fr}
+  .ticket-cell:nth-child(3){border-left:0}
+  .ticket-cell:nth-child(n+3){border-top:2px dashed var(--ink)}
+}
+
+/* ============ 色块大分区 ============ */
+.band{max-width:1240px;margin:64px auto 0;padding:0 clamp(14px,3vw,32px)}
+.band-inner{border-radius:40px;padding:clamp(40px,6vw,80px) clamp(20px,5vw,64px);position:relative;overflow:hidden}
+.band.red{background:var(--red-bg)} .band.teal{background:var(--teal-bg)}
+.band.yellow{background:var(--yellow-bg)} .band.lime{background:var(--lime-bg)}
+.band.blue{background:var(--blue-bg)}
+.band-index{
+  position:absolute;top:24px;right:36px;font-family:"DM Mono",monospace;font-size:clamp(50px,8vw,96px);
+  font-weight:500;color:transparent;-webkit-text-stroke:2px rgba(35,32,58,.28);line-height:1;pointer-events:none;
+}
+.sec-title{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;margin-bottom:14px}
+.sec-title h2{font-size:clamp(32px,5vw,56px);font-weight:900;letter-spacing:-1px}
+.sec-title .en{font-family:"DM Mono",monospace;font-size:14px;letter-spacing:3px;color:var(--ink-soft)}
+.sec-desc{color:var(--ink-soft);max-width:52em;margin-bottom:40px}
+
+/* ============ 作品：便当格 ============ */
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:30px}
+.chip{
+  font-weight:700;font-size:14px;padding:9px 20px;border-radius:999px;background:#fff;
+  border:2px solid var(--ink);cursor:pointer;transition:.2s;box-shadow:3px 3px 0 var(--ink);
+}
+.chip:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
+.chip.on{background:var(--ink);color:#fff}
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;grid-auto-flow:dense}
+.tile{
+  grid-column:span 2;border-radius:26px;padding:26px;border:2px solid var(--ink);
+  display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;transition:.25s;min-height:210px;
+}
+.tile:hover{transform:translate(-3px,-3px);box-shadow:7px 7px 0 var(--ink)}
+.tile.wide{grid-column:span 4}
+.tile.tall{grid-row:span 2}
+.tile .tnum{font-family:"DM Mono",monospace;font-size:14px;font-weight:500;opacity:.75}
+.tile h3{font-size:clamp(18px,2vw,24px);font-weight:900;line-height:1.3}
+.tile p{font-size:14px;opacity:.85;flex:1}
+.tile .tcat{position:absolute;top:20px;right:20px;font-size:12px;font-weight:900;background:#fff;color:var(--ink);border:2px solid var(--ink);padding:3px 12px;border-radius:999px;transform:rotate(3deg)}
+.tile .tgo{font-weight:900;font-size:14px;display:inline-flex;align-items:center;gap:6px}
+.tile.c-red{background:var(--red);color:#fff}.tile.c-red .tcat{color:var(--red)}
+.tile.c-orange{background:var(--orange);color:#fff}.tile.c-orange .tcat{color:var(--orange)}
+.tile.c-teal{background:var(--teal);color:#fff}.tile.c-teal .tcat{color:var(--teal)}
+.tile.c-blue{background:var(--blue);color:#fff}.tile.c-blue .tcat{color:var(--blue)}
+.tile.c-lime{background:var(--lime);color:#fff}.tile.c-lime .tcat{color:var(--lime)}
+.tile.c-paper{background:#fff}.tile.c-paper .tcat{color:var(--ink)}
+.tile.c-yellow{background:var(--yellow);color:var(--ink)}.tile.c-yellow .tcat{color:var(--ink)}
+.tile.hidden{display:none}
+@media(max-width:980px){.bento{grid-template-columns:repeat(2,1fr)}.tile,.tile.wide{grid-column:span 2}.tile.tall{grid-row:span 1}}
+@media(min-width:981px) and (max-width:1180px){.bento{grid-template-columns:repeat(4,1fr)}.tile{grid-column:span 2}.tile.wide{grid-column:span 4}}
+
+/* ============ 成长轨迹：垂直节点 ============ */
+.tl{position:relative;padding-left:56px}
+.tl::before{content:"";position:absolute;left:17px;top:8px;bottom:8px;width:4px;border-radius:4px;
+  background:repeating-linear-gradient(180deg,var(--ink) 0 10px,transparent 10px 20px)}
+.tl-stop{position:relative;margin-bottom:46px}
+.tl-dot{
+  position:absolute;left:-56px;top:0;width:38px;height:38px;border-radius:50%;
+  border:2px solid var(--ink);display:grid;place-items:center;font-weight:900;font-size:14px;color:#fff;
+  box-shadow:3px 3px 0 var(--ink);
+}
+.tl-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.tl-head h3{font-size:clamp(22px,3vw,30px);font-weight:900}
+.tl-head .mono{color:var(--ink-soft);font-size:14px}
+.tl-lessons{display:flex;flex-wrap:wrap;gap:10px}
+.lchip{
+  background:#fff;border:2px solid var(--ink);border-radius:14px;padding:10px 16px;
+  font-size:14px;font-weight:700;display:inline-flex;align-items:center;gap:10px;transition:.2s;box-shadow:3px 3px 0 rgba(35,32,58,.15);
+}
+.lchip:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink)}
+.lchip .dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--ink)}
+.lchip .tg{font-size:11px;color:var(--ink-soft);font-weight:500}
+
+/* ============ 技能：贴纸墙 ============ */
+.stickers-wall{display:flex;flex-wrap:wrap;gap:18px}
+.sk{
+  background:#fff;border:2px solid var(--ink);border-radius:20px;padding:20px 24px;
+  box-shadow:5px 5px 0 var(--ink);transition:.25s;min-width:150px;
+}
+.sk:nth-child(odd){transform:rotate(-1.6deg)}
+.sk:nth-child(even){transform:rotate(1.4deg)}
+.sk:hover{transform:rotate(0) translate(-3px,-3px);box-shadow:8px 8px 0 var(--ink)}
+.sk b{display:block;font-size:17px;font-weight:900}
+.sk .lv{display:flex;align-items:center;gap:8px;margin-top:8px}
+.sk .lv i{font-family:"DM Mono",monospace;font-size:13px;font-weight:500}
+.sk .dots{display:flex;gap:4px}
+.sk .dots u{width:10px;height:10px;border-radius:50%;background:var(--paper);border:2px solid var(--ink)}
+.sk .dots u.f{background:var(--g1)}
+.sk-note{margin-top:26px;color:var(--ink-soft);font-size:14px}
+
+/* ============ 关于：对话气泡式 ============ */
+.chat{max-width:760px;display:flex;flex-direction:column;gap:18px}
+.bub{
+  background:#fff;border:2px solid var(--ink);border-radius:22px;padding:20px 26px;
+  box-shadow:5px 5px 0 rgba(35,32,58,.18);max-width:85%;
+}
+.bub.me{align-self:flex-end;background:var(--ink);color:#fff;border-color:var(--ink);box-shadow:5px 5px 0 var(--g1)}
+.bub .who{font-family:"DM Mono",monospace;font-size:12px;letter-spacing:2px;opacity:.6;margin-bottom:4px}
+.bub p{font-size:15px}
+
+/* ============ 联系 ============ */
+.contact-wrap{text-align:center;padding:30px 0 10px}
+.contact-wrap h2{font-size:clamp(38px,7vw,80px);font-weight:900;line-height:1.1;letter-spacing:-1px}
+.contact-wrap .sub{color:var(--ink-soft);margin:16px 0 34px}
+.socials{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.soc{
+  font-weight:900;padding:13px 26px;border-radius:16px;background:#fff;border:2px solid var(--ink);
+  box-shadow:4px 4px 0 var(--ink);transition:.2s;
+}
+.soc:nth-child(odd){transform:rotate(-2deg)}
+.soc:nth-child(even){transform:rotate(2deg)}
+.soc:hover{transform:rotate(0) translate(-2px,-2px);box-shadow:7px 7px 0 var(--ink)}
+
+/* ============ 页脚 ============ */
+footer{max-width:1200px;margin:70px auto 0;padding:26px clamp(20px,5vw,48px) 40px;border-top:2px solid var(--ink);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;color:var(--ink-soft);font-size:14px;font-weight:500}
+
+/* ============ 杂项 ============ */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
+.reveal.in{opacity:1;transform:none}
+.to-top{position:fixed;right:20px;bottom:20px;z-index:60;width:50px;height:50px;border-radius:16px;border:2px solid var(--ink);background:var(--yellow);cursor:pointer;font-size:20px;font-weight:900;box-shadow:4px 4px 0 var(--ink);opacity:0;pointer-events:none;transition:.3s}
+.to-top.show{opacity:1;pointer-events:auto}
+.to-top:hover{transform:translate(-2px,-2px)}
+@media(max-width:760px){
+  .nav-pill a.nl{display:none}
+  .nav-burger{display:block}
+  .hero{padding-top:120px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav-pill" aria-label="主导航">
+  <span class="logo" data-bind="name">作品集</span>
+  <div id="desk-links" style="display:flex">
+    <a class="nl" href="#work" data-sec="work">作品</a>
+    <a class="nl" href="#journey" data-sec="journey">成长轨迹</a>
+    <a class="nl" href="#skills" data-sec="skills">技能</a>
+    <a class="nl" href="#about" data-sec="about">关于</a>
+    <a class="nl" href="#contact" data-sec="contact">联系</a>
+  </div>
+  <button class="nav-burger" id="burger" aria-label="菜单"><span></span><span></span><span></span></button>
+</nav>
+<div class="m-menu" id="m-menu">
+  <a href="#work">作品</a><a href="#journey">成长轨迹</a><a href="#skills">技能</a><a href="#about">关于</a><a href="#contact">联系</a>
+</div>
+
+<header class="hero">
+  <p class="kicker"><i></i>PORTFOLIO ✦ 持续更新中</p>
+  <h1>把脑子里的想法，<br />做成 <span class="hl">能用的东西</span></h1>
+  <p class="sub" data-bind="sub">这里是我做过的东西：小工具、数据看板、网页玩具，从想法到上线，全部能点开把玩。边做边学，慢慢攒出来的。</p>
+  <div class="hero-cta">
+    <a class="btn solid" href="#work">逛逛作品 →</a>
+    <a class="btn ghost" data-bind-href="github" target="_blank" rel="noreferrer">GitHub</a>
+  </div>
+  <span class="sticker s1">自娱自乐 ✦</span>
+  <span class="sticker s2">用 AI 一起做 ✦</span>
+  <svg class="badge-spin" viewBox="0 0 130 130" aria-hidden="true">
+    <defs><path id="circ" d="M65,65 m-48,0 a48,48 0 1,1 96,0 a48,48 0 1,1 -96,0"/></defs>
+    <circle cx="65" cy="65" r="63" fill="var(--red)" stroke="#23203a" stroke-width="2"/>
+    <text font-size="13.5" font-weight="700" fill="#fff" letter-spacing="2.5">
+      <textPath href="#circ">PORTFOLIO · 我的作品集 · MAKE THINGS ·</textPath>
+    </text>
+    <text x="65" y="72" text-anchor="middle" font-size="22" font-weight="900" fill="#fff">作品</text>
+  </svg>
+</header>
+
+<div class="marquee" aria-hidden="true"><div class="marquee-track" id="mq-track"></div></div>
+
+<div class="ticket reveal">
+  <div class="ticket-inner">
+    <div class="ticket-cell"><b data-count="13">0</b><span>个成品</span></div>
+    <div class="ticket-cell"><b data-count="5">0</b><span>个方向</span></div>
+    <div class="ticket-cell"><b data-count="20">0</b><span>样工具上手</span></div>
+    <div class="ticket-cell"><b>∞</b><span>持续折腾</span></div>
+  </div>
+</div>
+
+<main>
+  <!-- 作品：便当格 -->
+  <section class="band" id="work">
+    <div class="band-inner red">
+      <span class="band-index">01</span>
+      <div class="sec-title reveal"><h2>我做过啥</h2><span class="en">SELECTED WORK</span></div>
+      <p class="sec-desc reveal">按类型挑着看。块头大的 = 我比较得意的，块头小的 = 顺手做的。点进任意一块看完整介绍。</p>
+      <div class="chips reveal" id="chips"></div>
+      <div class="bento reveal" id="bento"></div>
+    </div>
+  </section>
+
+  <!-- 成长轨迹：垂直节点 -->
+  <section class="band" id="journey">
+    <div class="band-inner teal">
+      <span class="band-index">02</span>
+      <div class="sec-title reveal"><h2>这一路，怎么走过来的</h2><span class="en">THE JOURNEY</span></div>
+      <p class="sec-desc reveal">从零开始到现在，几个关键阶段。每一站都是自己琢磨出来的东西。</p>
+      <div class="tl reveal" id="timeline"></div>
+    </div>
+  </section>
+
+  <!-- 技能：贴纸墙 -->
+  <section class="band" id="skills">
+    <div class="band-inner yellow">
+      <span class="band-index">03</span>
+      <div class="sec-title reveal"><h2>顺手点亮的技能</h2><span class="en">TOOLBOX</span></div>
+      <p class="sec-desc reveal">不吹精通，只标熟练度。亮几个灯就是几个灯。</p>
+      <div class="stickers-wall reveal" id="wall"></div>
+      <p class="sk-note reveal">● = 已点亮一档。全部点亮 ≈ 敢拿它做项目。</p>
+    </div>
+  </section>
+
+  <!-- 关于：对话气泡 -->
+  <section class="band" id="about">
+    <div class="band-inner lime">
+      <span class="band-index">04</span>
+      <div class="sec-title reveal"><h2>几句话聊聊</h2><span class="en">ABOUT</span></div>
+      <div class="chat reveal" id="chat"></div>
+    </div>
+  </section>
+
+  <!-- 联系 -->
+  <section class="band" id="contact">
+    <div class="band-inner blue">
+      <span class="band-index">05</span>
+      <div class="contact-wrap reveal">
+        <h2>有想法？<br /><span style="background:linear-gradient(90deg,var(--g1),var(--g2));-webkit-background-clip:text;background-clip:text;color:transparent">来聊。</span></h2>
+        <p class="sub" data-bind="email">hello@example.com</p>
+        <div class="socials" id="socials">
+          <a class="soc" data-bind-href="github" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span>© <span data-bind="name">你的名字</span> · 个人作品集</span>
+  <span class="mono">MADE WITH ☕ ✦</span>
+</footer>
+
+<button class="to-top" id="to-top" aria-label="返回顶部">↑</button>
+
+<script>
+/* =========================================================
+   假数据区：之后替换为真实内容即可，页面自动渲染。
+   ========================================================= */
+/* === DATA_START === */
+const content = {
+  "name": "姝姝",
+  "sub": "一个人，把脑子里的想法一个一个做成能用的东西——数据采集、自动化、AI Agent、桌面软件，全在这儿，点开就能看。",
+  "email": "hello@example.com",
+  "github": "",
+  "marquee": [
+    "PYTHON",
+    "数据采集",
+    "自动化",
+    "AI Agent",
+    "大模型",
+    "桌面应用",
+    "逆向分析",
+    "向量检索",
+    "网页开发",
+    "打包上线"
+  ],
+  "tiles": [
+    {
+      "cat": "AI Agent",
+      "size": "wide",
+      "color": "c-red",
+      "num": "01",
+      "title": "语音对话助手",
+      "desc": "说话就能问 AI：后端思考、语音回答，还能自己决定要不要翻本地资料。",
+      "tags": [
+        "Flask",
+        "DeepSeek",
+        "语音"
+      ],
+      "link": "works/voice-agent.html",
+      "id": "voice-agent",
+      "detail": {
+        "accent": "red",
+        "lead": "说一句话，AI 听懂、思考、再把答案用语音读回来。",
+        "bg": "想把「说句话就能问 AI」做成真能跑的东西，从最简一版开始一轮轮往上加。",
+        "did": [
+          "第一版跑通全链路：录音 → 识别 → 大模型 → 朗读回答。",
+          "第二版换 edge-tts 高质量音色，加 10 轮对话记忆，断网自动降级浏览器语音。",
+          "第三版配 Function Calling 工具箱，模型自己决定要不要查本地知识库，查不到就老实说没有。"
+        ],
+        "highlights": [
+          "说话→思考→回答全链路打通",
+          "工具调用由模型自主决策",
+          "语音合成有降级兜底"
+        ],
+        "demo": {
+          "src": "demo/voice/index.html",
+          "h": "min(86vh,780px)",
+          "lab": "LIVE DEMO · 浏览器里直接说话",
+          "btn": "新窗口打开 ↗",
+          "hint": "演示模式：语音识别与朗读由浏览器完成，回答由页面内置的资料检索生成。想让它答得更准，点右上「📚 知识库」上传你自己的 .md / .txt 资料，立刻就能被问到。"
+        },
+        "stage": null,
+        "extra": {
+          "title": "想跑真后端？",
+          "note": "页面上的这个是纯静态演示版；真机版本是 Flask + DeepSeek + edge-tts，在本地两条命令就能起来。",
+          "items": [
+            "装依赖：pip install -r requirements.txt",
+            "配置环境变量 DEEPSEEK_API_KEY（回答由大模型生成，需要这个 Key）",
+            "启动服务：python app.py，再打开 http://127.0.0.1:5000",
+            "想让别人也能访问：部署到一台小服务器（或云函数），挂上域名即可"
+          ],
+          "badges": [
+            "回答由大模型生成",
+            "edge-tts 自然人声",
+            "可上传任意本地知识库"
+          ]
+        }
+      }
+    },
+    {
+      "cat": "桌面应用",
+      "size": "wide",
+      "color": "c-blue",
+      "num": "02",
+      "title": "养成型桌面桌宠",
+      "desc": "住在屏幕角落的小动物，会走会睡会被拎起来，有等级和亲密度，关掉再开数值还在。",
+      "tags": [
+        "PySide6",
+        "状态机"
+      ],
+      "link": "works/desktop-pet.html",
+      "id": "desktop-pet",
+      "detail": {
+        "accent": "blue",
+        "lead": "一只住在屏幕角落的小动物，会走会睡会被拎起来，还有等级和亲密度。",
+        "bg": "从最简单的弹窗小猫，一路升级到多物种的养成系桌宠。",
+        "did": [
+          "初代 Tkinter 小猫：点击冒俏皮话、提醒喝水、右键喂食、能拖动。",
+          "PySide6 重写：猫 / 狗 / 企鹅三物种，状态机 + 物理回弹。",
+          "养成数值（等级、饱食度、心情、亲密度）每 30 秒自动存档，重开原样恢复。"
+        ],
+        "highlights": [
+          "真透明窗口，气泡鼠标穿透",
+          "表情素材全部脚本化生成",
+          "换宠物数值不清零"
+        ],
+        "demo": null,
+        "stage": "pet",
+        "extra": null
+      }
+    },
+    {
+      "cat": "AI Agent",
+      "size": "wide",
+      "color": "c-lime",
+      "num": "03",
+      "title": "自媒体自动运营流水线",
+      "desc": "热点采集 → AI 写稿 → 自动发布，一条龙跑通，人只把控方向。",
+      "tags": [
+        "Playwright",
+        "自动化"
+      ],
+      "link": "works/auto-media.html",
+      "id": "auto-media",
+      "detail": {
+        "accent": "lime",
+        "lead": "从热点到成稿到发布串成一条流水线，人只负责把关方向。",
+        "bg": "刷热点、写初稿、排版、发文章——机械的部分全部交给程序。",
+        "did": [
+          "命令行批量采集多平台热点榜，交叉验证后挑出唯一选题。",
+          "大模型按固定结构写初稿，产出 Markdown。",
+          "浏览器自动化登录平台、填标题选话题、存草稿或发布，全程留痕可回退。"
+        ],
+        "highlights": [
+          "热点→选题→写稿→发布一条龙",
+          "发布前可存草稿人工校验",
+          "采集与发布解耦"
+        ],
+        "demo": {
+          "src": "demo/media-pipeline.html",
+          "h": "min(88vh,880px)",
+          "lab": "LIVE DEMO · 完整跑一遍流水线",
+          "btn": "新窗口打开 ↗",
+          "hint": "点「运行流水线」，四步依次点亮：抓四个平台的热榜 → 交叉验证挑出唯一选题 → 按固定结构出初稿 → 走发布流程。它永远停在「已存草稿」，把最后那一下留给人。"
+        },
+        "stage": null,
+        "extra": null
+      }
+    },
+    {
+      "cat": "数据采集",
+      "size": "normal",
+      "color": "c-teal",
+      "num": "04",
+      "title": "网页接口加密逆向",
+      "desc": "把站点请求里的加密参数用纯 Python 复刻，逐字节对齐页面真值。",
+      "tags": [
+        "AES",
+        "RSA"
+      ],
+      "link": "works/netease-crypto.html",
+      "id": "netease-crypto",
+      "detail": {
+        "accent": "teal",
+        "lead": "把请求里那串看不懂的加密参数，用纯 Python 一模一样地复刻出来。",
+        "bg": "目标站点的搜索接口做了两层 AES 加一层 RSA，想搞清楚它到底怎么算。",
+        "did": [
+          "顺着页面加密函数往下扒，定位随机密钥、两次 AES-CBC 和一次 RSA 的完整流程。",
+          "Python 复刻：两层 AES + 自实现 RSA，输出与页面真值逐字节对齐。",
+          "实打接口验证——自己构造的参数能正常拿到搜索结果。"
+        ],
+        "highlights": [
+          "逐字节对齐页面真值",
+          "纯 Python 不依赖浏览器",
+          "踩坑全部记录在案"
+        ],
+        "demo": {
+          "src": "demo/crypto.html",
+          "h": "min(88vh,860px)",
+          "lab": "LIVE DEMO · 三层加密真算一遍",
+          "btn": "新窗口打开 ↗",
+          "hint": "页面里是真的在做运算：两层 AES-128-CBC 走浏览器加密接口，RSA 用自实现的大整数模幂。点「运行校验」，会拿固定输入和当初从页面加密函数里抠出来的两个参考值逐字节比对。"
+        },
+        "stage": null,
+        "extra": null
+      }
+    },
+    {
+      "cat": "AI Agent",
+      "size": "normal",
+      "color": "c-yellow",
+      "num": "05",
+      "title": "GitHub 热门智能巡检",
+      "desc": "自动抓热门榜，让 AI 读 README 打分，高分写进报告。",
+      "tags": [
+        "大模型",
+        "评分"
+      ],
+      "link": "works/github-patrol.html",
+      "id": "github-patrol",
+      "detail": {
+        "accent": "yellow",
+        "lead": "自动看一遍热门榜，把值得学的项目挑出来打分。",
+        "bg": "想扫一眼 Trending 又懒得一个个点进去，让 AI 代劳。",
+        "did": [
+          "自动打开热门榜，抓下每个项目的标题、描述、语言、Star 数。",
+          "项目连同 README 一起交给大模型，按维度打分并说明值不值得学。",
+          "只把高分项目写进报告，整套流程封装成可复用的技能。"
+        ],
+        "highlights": [
+          "评分维度由提示词方法设计",
+          "报告只留高分不过载",
+          "流程封装成可复用技能"
+        ],
+        "demo": {
+          "src": "demo/trending.html",
+          "h": "min(88vh,860px)",
+          "lab": "LIVE DEMO · 跑一次巡检",
+          "btn": "新窗口打开 ↗",
+          "hint": "点「开始巡检」会真的去调 GitHub 接口，把冒头的新项目拉回来（接口拿不到就自动用内置快照），再按四个维度打分、只把高分的写进报告。"
+        },
+        "stage": null,
+        "extra": null
+      }
+    },
+    {
+      "cat": "AI Agent",
+      "size": "normal",
+      "color": "c-orange",
+      "num": "06",
+      "title": "本地语义记忆库",
+      "desc": "把经验存进本地向量库，按语义检索，跨任务复用。",
+      "tags": [
+        "ChromaDB",
+        "向量"
+      ],
+      "link": "works/local-memory.html",
+      "id": "local-memory",
+      "detail": {
+        "accent": "orange",
+        "lead": "把说过的偏好、踩过的坑存进本地向量库，下次开工自动想起来。",
+        "bg": "同一个项目聊久了，早先定过的规矩总要重复交代，想要一层真正本地的长期记忆。",
+        "did": [
+          "本地向量库存经验条目，中文嵌入模型把句子变成向量，语义相近即可检索。",
+          "按项目隔离存储，不同项目的经验不串味。",
+          "封装成增删改查 + 检索一整套脚本，AI 知道何时该存、何时该查。"
+        ],
+        "highlights": [
+          "语义检索而非关键词匹配",
+          "按项目隔离不串味",
+          "全本地，数据不出机器"
+        ],
+        "demo": {
+          "src": "demo/memory.html",
+          "h": "min(88vh,840px)",
+          "lab": "LIVE DEMO · 真存、真检索、真隔离",
+          "btn": "新窗口打开 ↗",
+          "hint": "往里加几条记忆、删几条、按项目切着看，然后提问——它会把「意思对但用词不同」的记忆找回来，并显示相似度。真机版是向量库 + 中文嵌入模型求余弦距离，这里用的是同一套排序思路的轻量实现。"
+        },
+        "stage": null,
+        "extra": null
+      }
+    },
+    {
+      "cat": "AI Agent",
+      "size": "normal",
+      "color": "c-teal",
+      "num": "07",
+      "title": "AI 自动玩 2048",
+      "desc": "让 AI 看棋盘、判断方向、自动操作，一整条闭环跑通。",
+      "tags": [
+        "多模态",
+        "闭环"
+      ],
+      "link": "works/ai-2048.html",
+      "id": "ai-2048",
+      "detail": {
+        "accent": "teal",
+        "lead": "让 AI 自己看棋盘、判断方向、动手玩，一整套闭环跑起来。",
+        "bg": "好奇能不能让 AI 像人一样「看着屏幕」玩游戏，拿 2048 当靶子。",
+        "did": [
+          "定位游戏 iframe，只截棋盘区域，去掉广告和无关内容。",
+          "截图交给能看图的模型，判断下一步往哪个方向滑。",
+          "判断结果翻译成键盘 / 鼠标操作，循环执行让它自己玩下去。"
+        ],
+        "highlights": [
+          "只截棋盘，识别更准",
+          "感知→决策→操作完整闭环",
+          "思路可迁移到其它网页游戏"
+        ],
+        "demo": {
+          "src": "demo/game2048.html",
+          "h": "min(88vh,820px)",
+          "lab": "LIVE DEMO · 棋盘能玩，AI 也能自己玩",
+          "btn": "新窗口打开 ↗",
+          "hint": "棋盘可以直接用方向键或手指滑动玩。点「AI 接管」，右边会同步显示它的三步：看清棋盘 → 给四个方向打分 → 决定按下哪个键。真机版靠多模态模型看图决策，这里换成同一套「感知—决策—操作」结构的本地策略。"
+        },
+        "stage": null,
+        "extra": null
+      }
+    },
+    {
+      "cat": "数据采集",
+      "size": "normal",
+      "color": "c-orange",
+      "num": "08",
+      "title": "商品价格监控雷达",
+      "desc": "定时抓商品页，AI 挑出最低价，落成一张价格走势图。",
+      "tags": [
+        "定时",
+        "可视化"
+      ],
+      "link": "works/price-radar.html",
+      "id": "price-radar",
+      "detail": {
+        "accent": "orange",
+        "lead": "定时盯着商品页，让 AI 挑出最便宜的那个，画成价格走势。",
+        "bg": "想买的东西价格一天一个样，手动盯太累，做了个能自动跑的监控。",
+        "did": [
+          "定时任务按点打开商品搜索页，把整页内容抓下来。",
+          "整页内容交给大模型，按规则提取商品名和价格，挑出最低价。",
+          "结果落成结构化数据，画成价格走势图。"
+        ],
+        "highlights": [
+          "整页交给 AI，不写死选择器",
+          "定时自动跑",
+          "结果沉淀成可观察的走势图"
+        ],
+        "demo": {
+          "src": "demo/price.html",
+          "lab": "LIVE DEMO · 真实监控数据",
+          "btn": "全屏打开 ↗",
+          "hint": "10 次真实扫描：从 ¥4299 一路探到 ¥1088。悬停看每次价格，点圆点可跳商品页。"
+        },
+        "stage": null,
+        "extra": null
+      }
+    },
+    {
+      "cat": "数据采集",
+      "size": "normal",
+      "color": "c-blue",
+      "num": "09",
+      "title": "智能采集框架实战",
+      "desc": "用自然语言让 AI 生成提取规则，抓二手车数据落成 CSV。",
+      "tags": [
+        "crawl4ai",
+        "采集"
+      ],
+      "link": "works/crawl4ai.html",
+      "id": "crawl4ai",
+      "detail": {
+        "accent": "blue",
+        "lead": "不写死提取规则，用自然语言让 AI 帮你生成，再抓成 CSV。",
+        "bg": "传统采集手写一堆选择器，页面一改就废，试试让 AI 生成规则。",
+        "did": [
+          "摸清框架基础用法：一次抓取、导出页面内容。",
+          "AI 配置自动生成字段提取规则（标题 / 价格 / 链接等）。",
+          "二手车列表页实战，结果清洗后落成 CSV。"
+        ],
+        "highlights": [
+          "提取规则由 AI 生成",
+          "页面改版更易适配",
+          "抓取到落盘一条龙"
+        ],
+        "demo": {
+          "src": "demo/cars.html",
+          "lab": "LIVE DEMO · 真实采集结果",
+          "btn": "全屏打开 ↗",
+          "hint": "40 台二手车的真实抓取数据：按城市筛选，按价格 / 里程 / 年份排序。"
+        },
+        "stage": null,
+        "extra": null
+      }
+    },
+    {
+      "cat": "网页开发",
+      "size": "normal",
+      "color": "c-lime",
+      "num": "10",
+      "title": "网页小游戏合集",
+      "desc": "打开就能玩的小游戏，跳一跳、2048，重点打磨手感。",
+      "tags": [
+        "Canvas",
+        "动效"
+      ],
+      "link": "works/web-games.html",
+      "id": "web-games",
+      "detail": {
+        "accent": "lime",
+        "lead": "打开网页就能玩的轻量小游戏，手感是重点。",
+        "bg": "练前端交互和动效，做游戏是最直接的练法——每一步都要考虑手感。",
+        "did": [
+          "纯前端实现跳一跳：按住蓄力、松手起跳，带镜头跟随和落地反馈。",
+          "实现 2048：棋盘合并逻辑 + 滑动动画，键盘触摸都能玩。",
+          "打磨过渡曲线、音效反馈、移动端适配。"
+        ],
+        "highlights": [
+          "纯前端零依赖，打开即玩",
+          "重点打磨操作手感",
+          "桌面手机都能操作"
+        ],
+        "demo": {
+          "src": "demo/jump.html",
+          "lab": "LIVE DEMO · 现在就能玩",
+          "btn": "全屏打开 ↗",
+          "hint": "这是实际成品：按住鼠标 / 手指蓄力，松手起跳，落到台上得分。"
+        },
+        "stage": null,
+        "extra": null
+      }
+    },
+    {
+      "cat": "数据采集",
+      "size": "normal",
+      "color": "c-yellow",
+      "num": "11",
+      "title": "商品评论批量采集",
+      "desc": "展开评论区、模拟滚动加载，把评论批量抓成 CSV。",
+      "tags": [
+        "采集",
+        "CSV"
+      ],
+      "link": "works/comment-collector.html",
+      "id": "comment-collector",
+      "detail": {
+        "accent": "yellow",
+        "lead": "把商品页里刷不完的评论，批量抓下来整理成表。",
+        "bg": "想分析一款商品的口碑，但评论要一页页手动翻，太慢。",
+        "did": [
+          "自动打开商品详情页，展开「查看全部评论」。",
+          "模拟鼠标滚动触发懒加载，一遍遍往下滚。",
+          "边滚边抓，去重后落成 CSV。"
+        ],
+        "highlights": [
+          "识别并展开折叠评论区",
+          "模拟真人滚动触发懒加载",
+          "结果可直接分析"
+        ],
+        "demo": {
+          "src": "demo/comments.html",
+          "lab": "LIVE DEMO · 真实采集结果",
+          "btn": "全屏打开 ↗",
+          "hint": "20 条实际抓取的评论：支持搜索与关键词热度统计。"
+        },
+        "stage": null,
+        "extra": null
+      }
+    },
+    {
+      "cat": "网页开发",
+      "size": "normal",
+      "color": "c-teal",
+      "num": "12",
+      "title": "计划管理后端",
+      "desc": "Flask + 数据库写的一套接口，增删查全落在 SQLite。",
+      "tags": [
+        "Flask",
+        "SQLite"
+      ],
+      "link": "works/plan-backend.html",
+      "id": "plan-backend",
+      "detail": {
+        "accent": "teal",
+        "lead": "一套管计划的后端接口：数据增删改查全落在数据库里。",
+        "bg": "做前端练习时需要真实接口，索性自己写一套完整后端。",
+        "did": [
+          "Flask 起服务，配好跨域，前端能直接请求。",
+          "SQLAlchemy 定义数据模型，落到 SQLite 数据库。",
+          "实现新增 / 查询接口，一个请求拿到 JSON。"
+        ],
+        "highlights": [
+          "真数据库读写，不是假数据",
+          "接口返回规范 JSON",
+          "前后端分离"
+        ],
+        "demo": {
+          "src": "demo/plan-api.html",
+          "h": "min(88vh,860px)",
+          "lab": "LIVE DEMO · 提交一次，落一次库",
+          "btn": "新窗口打开 ↗",
+          "hint": "左边提交计划，右边实时打出这次请求的方法、路径、请求体和响应 JSON，底部还有数据库表视图。请求体字段和真机后端完全一致，可以对着这套接口写前端。"
+        },
+        "stage": null,
+        "extra": null
+      }
+    },
+    {
+      "cat": "桌面应用",
+      "size": "normal",
+      "color": "c-orange",
+      "num": "13",
+      "title": "工具打包集",
+      "desc": "把 Python 脚本打包成双击即用的 exe，四种场景都跑通。",
+      "tags": [
+        "PyInstaller",
+        "EXE"
+      ],
+      "link": "works/pack-toolkit.html",
+      "id": "pack-toolkit",
+      "detail": {
+        "accent": "yellow",
+        "lead": "把写好的 Python 脚本，打包成别人双击就能用的 exe。",
+        "bg": "自己写的工具，发给不会装环境的人就用不了，打包是最后一道坎。",
+        "did": [
+          "单文件打包：无依赖的小脚本压成一个 exe。",
+          "带素材打包：打包后依然能找到图片等静态资源。",
+          "三方库 / 多文件打包：pandas 项目、多模块项目一起打进去。"
+        ],
+        "highlights": [
+          "四种打包场景全跑通",
+          "资源路径统一处理",
+          "双击即用，无需环境"
+        ],
+        "demo": {
+          "src": "demo/pack.html",
+          "h": "min(86vh,800px)",
+          "lab": "LIVE DEMO · 四种打包场景随便试",
+          "btn": "新窗口打开 ↗",
+          "hint": "四个场景逐个点「开始打包」，看真实的打包输出、产物体积和各自容易踩的坑——比如带 pandas 的项目一打就是 204MB。"
+        },
+        "stage": null,
+        "extra": null
+      }
+    }
+  ],
+  "stops": [
+    {
+      "mark": "1",
+      "name": "起步 · 把数据抓回来",
+      "color": "var(--red)",
+      "tag": "先把东西弄到手",
+      "lessons": [
+        [
+          "静态页面抓取",
+          "Requests"
+        ],
+        [
+          "浏览器自动化",
+          "DrissionPage"
+        ],
+        [
+          "列表页与详情页",
+          "规则提取"
+        ]
+      ]
+    },
+    {
+      "mark": "2",
+      "name": "深入 · 跟加密和反爬过招",
+      "color": "var(--orange)",
+      "tag": "硬骨头",
+      "lessons": [
+        [
+          "接口加密逆向",
+          "AES + RSA"
+        ],
+        [
+          "AI 生成提取规则",
+          "crawl4ai"
+        ],
+        [
+          "数据落盘",
+          "CSV / Excel"
+        ]
+      ]
+    },
+    {
+      "mark": "3",
+      "name": "进阶 · 让数据动起来",
+      "color": "var(--yellow)",
+      "tag": "开始有画面",
+      "lessons": [
+        [
+          "后端接口",
+          "Flask"
+        ],
+        [
+          "数据库读写",
+          "SQLAlchemy"
+        ],
+        [
+          "数据可视化",
+          "图表"
+        ]
+      ]
+    },
+    {
+      "mark": "4",
+      "name": "打磨 · 做成能用的软件",
+      "color": "var(--teal)",
+      "tag": "给真的人用",
+      "lessons": [
+        [
+          "桌面应用",
+          "PySide6"
+        ],
+        [
+          "打包成 exe",
+          "PyInstaller"
+        ],
+        [
+          "交互手感",
+          "状态机 / 动画"
+        ]
+      ]
+    },
+    {
+      "mark": "5",
+      "name": "当前 · 让 AI 自己干活",
+      "color": "var(--blue)",
+      "tag": "正在做",
+      "lessons": [
+        [
+          "工具调用",
+          "Function Calling"
+        ],
+        [
+          "语义记忆",
+          "向量检索"
+        ],
+        [
+          "自动运营",
+          "浏览器自动化"
+        ]
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "name": "Python",
+      "level": 5
+    },
+    {
+      "name": "数据采集 / 清洗",
+      "level": 4
+    },
+    {
+      "name": "Requests / DrissionPage",
+      "level": 4
+    },
+    {
+      "name": "Flask / 接口开发",
+      "level": 4
+    },
+    {
+      "name": "SQLAlchemy / SQLite",
+      "level": 3
+    },
+    {
+      "name": "HTML / CSS / JS",
+      "level": 4
+    },
+    {
+      "name": "PySide6 桌面应用",
+      "level": 3
+    },
+    {
+      "name": "PyInstaller 打包",
+      "level": 4
+    },
+    {
+      "name": "大模型 API / 工具调用",
+      "level": 4
+    },
+    {
+      "name": "向量检索 / RAG",
+      "level": 3
+    },
+    {
+      "name": "浏览器自动化",
+      "level": 4
+    },
+    {
+      "name": "加密逆向分析",
+      "level": 3
+    }
+  ],
+  "chat": [
+    {
+      "who": "Q · 你平时都做些什么？",
+      "me": false,
+      "text": "主要是跟数据打交道——把网页上的东西抓回来、洗干净、做成能看的图表；再往上就是让 AI 帮忙干活，做点自动化的小工具。"
+    },
+    {
+      "who": "A · 为什么做这么多东西？",
+      "me": true,
+      "text": "每个想法能从「想要」一路跑到「真的能用」，这个过程最上头。做完一个就想做下一个，慢慢就攒了一堆。"
+    },
+    {
+      "who": "Q · 接下来在做什么？",
+      "me": false,
+      "text": "继续把 AI Agent 那条线做深——让它能记事儿、会查资料、自己把重复的活儿干掉。"
+    }
+  ],
+  "socials": [
+    {
+      "name": "微信",
+      "url": ""
+    },
+    {
+      "name": "CSDN",
+      "url": ""
+    },
+    {
+      "name": "B站",
+      "url": ""
+    }
+  ]
+};
+/* === DATA_END === */
+
+/* ============ 渲染 ============ */
+function renderMarquee(){
+  const items=content.marquee.map(t=>`<span>${t}</span>`).join("");
+  document.getElementById("mq-track").innerHTML=items+items;
+}
+function renderBento(filter="全部"){
+  const cats=["全部",...new Set(content.tiles.map(t=>t.cat))];
+  const chipBox=document.getElementById("chips");
+  if(!chipBox.dataset.built){
+    chipBox.innerHTML=cats.map((c,i)=>`<button class="chip${i===0?" on":""}" data-c="${c}">${c}</button>`).join("");
+    chipBox.dataset.built="1";
+    chipBox.addEventListener("click",e=>{
+      const b=e.target.closest(".chip");if(!b)return;
+      chipBox.querySelectorAll(".chip").forEach(x=>x.classList.remove("on"));
+      b.classList.add("on");renderBento(b.dataset.c);
+    });
+  }
+  document.getElementById("bento").innerHTML=content.tiles.map(t=>{
+    const hide=(filter!=="全部"&&t.cat!==filter)?"hidden":"";
+    return `<article class="tile ${t.size} ${t.color} ${hide}">
+      <span class="tcat">${t.cat}</span>
+      <span class="tnum">${t.num}</span>
+      <h3>${t.title}</h3>
+      <p>${t.desc}</p>
+      <div class="tags" style="display:flex;gap:8px;flex-wrap:wrap;font-size:12px;font-weight:700;opacity:.9">
+        ${t.tags.map(x=>`<span style="border:1.5px solid currentColor;border-radius:999px;padding:2px 10px">${x}</span>`).join("")}
+      </div>
+      <a class="tgo" href="${t.link||'#'}"${t.link?' target="_blank" rel="noreferrer"':''}>打开成品 ↗</a>
+    </article>`;
+  }).join("");
+}
+function renderTimeline(){
+  document.getElementById("timeline").innerHTML=content.stops.map(s=>`
+    <div class="tl-stop">
+      <span class="tl-dot" style="background:${s.color}">${s.mark}</span>
+      <div class="tl-head"><h3>${s.name}</h3><span class="mono">${s.tag}</span></div>
+      <div class="tl-lessons">
+        ${s.lessons.map(l=>`<span class="lchip"><span class="dot" style="background:${s.color}"></span>${l[0]}<span class="tg">${l[1]}</span></span>`).join("")}
+      </div>
+    </div>`).join("");
+}
+function renderWall(){
+  document.getElementById("wall").innerHTML=content.skills.map(s=>`
+    <div class="sk">
+      <b>${s.name}</b>
+      <div class="lv">
+        <span class="dots">${[1,2,3,4,5].map(i=>`<u class="${i<=s.level?"f":""}"></u>`).join("")}</span>
+        <i>${s.level}/5</i>
+      </div>
+    </div>`).join("");
+}
+function renderChat(){
+  document.getElementById("chat").innerHTML=content.chat.map(c=>`
+    <div class="bub ${c.me?"me":""}"><div class="who">${c.who}</div><p>${c.text}</p></div>`).join("");
+}
+
+function renderBind(){
+  document.querySelectorAll("[data-bind]").forEach(el=>{const k=el.dataset.bind;if(content[k]!=null)el.textContent=content[k];});
+  document.querySelectorAll("[data-bind-href]").forEach(el=>{
+    const k=el.dataset.bindHref;
+    if(content[k]){ el.setAttribute("href",content[k]); }
+    else { el.style.display="none"; }   /* 没填链接就藏起来，避免点了没反应的死按钮 */
+  });
+}
+function renderSocials(){
+  const box=document.getElementById("socials");if(!box)return;
+  box.insertAdjacentHTML("beforeend", (content.socials||[]).filter(s=>s&&s.url).map(s=>`<a class="soc" href="${s.url}" target="_blank" rel="noreferrer">${s.name}</a>`).join(""));
+}
+
+/* ============ 交互 ============ */
+let io;
+function observeReveal(){
+  if(!io) io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);}}),{threshold:.1});
+  document.querySelectorAll(".reveal:not(.in)").forEach(el=>io.observe(el));
+}
+function counters(){
+  document.querySelectorAll("[data-count]").forEach(el=>{
+    const t=+el.dataset.count;let c=0;const step=Math.max(1,Math.ceil(t/40));
+    const timer=setInterval(()=>{c+=step;if(c>=t){c=t;clearInterval(timer);}el.textContent=c;},30);
+  });
+}
+function scrollFx(){
+  const top=document.getElementById("to-top");
+  addEventListener("scroll",()=>top.classList.toggle("show",scrollY>500));
+  top.addEventListener("click",()=>scrollTo({top:0,behavior:"smooth"}));
+  const links=[...document.querySelectorAll("#desk-links .nl")];
+  const nio=new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting)links.forEach(a=>a.classList.toggle("active",a.dataset.sec===e.target.id));
+  }),{rootMargin:"-40% 0px -55% 0px"});
+  ["work","journey","skills","about","contact"].forEach(id=>{const s=document.getElementById(id);if(s)nio.observe(s);});
+}
+function mobileMenu(){
+  const b=document.getElementById("burger"),m=document.getElementById("m-menu");
+  b.addEventListener("click",()=>m.classList.toggle("open"));
+  m.querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>m.classList.remove("open")));
+}
+
+/* ============ 启动 ============ */
+renderMarquee();renderBento();renderTimeline();renderWall();renderChat();renderBind();renderSocials();
+observeReveal();counters();scrollFx();mobileMenu();
+</script>
+</body>
+</html>

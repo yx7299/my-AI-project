@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>请求加密流水线</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23F4482B'/%3E%3Cpath d='M16 5.5l2.7 7.8 7.8 2.7-7.8 2.7L16 26.5l-2.7-7.8L5.5 16l7.8-2.7z' fill='%23fff'/%3E%3C/svg%3E" />
+<style>
+:root{--paper:#F8F4EC;--ink:#23203a;--soft:#6b6580;--a:#10B6A6;--b:#2E6FE6;--c:#F4482B}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;background:var(--paper);color:var(--ink);line-height:1.65;padding:20px clamp(12px,3vw,26px) 28px}
+.mono,code,textarea{font-family:"DM Mono",Consolas,monospace}
+h1{font-size:clamp(18px,3vw,24px);font-weight:900;letter-spacing:-.4px}
+.sub{color:var(--soft);font-size:13px;font-weight:700;margin:4px 0 16px}
+h2{font-size:14px;font-weight:900;letter-spacing:.4px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+h2::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--c);border:2px solid var(--ink)}
+.panel{background:#fff;border:2px solid var(--ink);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:4px 4px 0 rgba(35,32,58,.13)}
+textarea{width:100%;min-height:74px;resize:vertical;font-size:13px;border:2px solid var(--ink);border-radius:12px;padding:10px 12px;background:var(--paper);color:var(--ink);line-height:1.6}
+.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:11px}
+button{font:inherit;font-weight:900;font-size:13px;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:7px 18px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);transition:.14s}
+button:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink)}
+button.primary{background:var(--ink);color:#fff}
+button.tiny{padding:3px 12px;font-size:11px;box-shadow:2px 2px 0 var(--ink);border-radius:8px}
+.keyview{font-size:11px;color:var(--soft);font-weight:700}
+.keyview b{color:var(--ink);background:#fff;border:1.5px dashed var(--ink);border-radius:6px;padding:1px 7px}
+.step{border-left:5px solid var(--ink);border-radius:14px;background:#fff;border:2px solid var(--ink);padding:13px 15px;margin-bottom:11px;box-shadow:4px 4px 0 rgba(35,32,58,.10)}
+.step.s1{border-left-color:var(--a)}
+.step.s2{border-left-color:var(--b)}
+.step.s3{border-left-color:var(--c)}
+.sh{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.sh .t{font-weight:900;font-size:13.5px}
+.sh .t em{font-style:normal;font-family:"DM Mono",monospace;font-size:11px;color:var(--soft);margin-left:6px}
+.sh .badge{font-family:"DM Mono",monospace;font-size:10.5px;border:2px solid var(--ink);border-radius:999px;padding:1px 10px;background:var(--paper)}
+.line{font-size:11.5px;color:var(--soft);font-weight:700;margin-bottom:5px}
+.code{position:relative;background:#26233a;color:#e9e4ff;border-radius:10px;padding:10px 12px;font-size:11.5px;line-height:1.6;word-break:break-all;max-height:120px;overflow:auto}
+.code .cp{position:absolute;right:8px;top:8px}
+.kv{display:flex;gap:10px;align-items:flex-start;margin-bottom:9px}
+.kv .k{font-family:"DM Mono",monospace;font-size:11.5px;font-weight:700;color:var(--soft);flex:none;width:82px;padding-top:9px}
+.kv .v{flex:1;min-width:0}
+.verdict{font-weight:900;font-size:12px;border-radius:8px;padding:2px 10px;border:2px solid var(--ink);display:inline-block}
+.ok{background:#7CCB1E;color:#23203a}
+.bad{background:#F4482B;color:#fff}
+ul.vres{list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:12px}
+ul.vres li{font-size:12.5px;display:flex;gap:9px;align-items:flex-start;flex-wrap:wrap}
+ul.vres li .em{font-size:15px;line-height:1.2}
+.note{font-size:12.5px;color:#3a3550}
+.note b{font-weight:900}
+.note ol{margin:8px 0 0 18px;display:flex;flex-direction:column;gap:5px}
+.note code{background:var(--paper);border:1.5px solid var(--ink);border-radius:6px;padding:0 5px;font-size:11.5px}
+.warn{margin-top:11px;font-size:12px;background:#FFF6D6;border:2px dashed var(--ink);border-radius:10px;padding:9px 12px;font-weight:700}
+</style>
+</head>
+<body>
+
+<h1>请求加密流水线</h1>
+<p class="sub">明文 → 两层 AES-CBC → 一次 RSA → <span class="mono">params</span> / <span class="mono">encSecKey</span>，全部在浏览器里真算。</p>
+
+<section class="panel">
+  <h2>请求明文</h2>
+  <textarea id="plain">{"s":"林俊杰","limit":"8","csrf_token":"01562503b22650749c554440c4a3a38d"}</textarea>
+  <div class="row">
+    <button class="primary" id="run">运行加密流水线</button>
+    <button id="reroll">换一个随机密钥</button>
+    <span class="keyview">本次随机密钥 <b class="mono" id="keyview">—</b></span>
+  </div>
+</section>
+
+<div id="steps"></div>
+
+<section class="panel">
+  <h2>最终请求体</h2>
+  <div class="kv"><span class="k">params</span><span class="v"><div class="code" id="o-params"><button class="tiny cp" data-copy="o-params">复制</button>—</div></span></div>
+  <div class="kv"><span class="k">encSecKey</span><span class="v"><div class="code" id="o-key"><button class="tiny cp" data-copy="o-key">复制</button>—</div></span></div>
+</section>
+
+<section class="panel">
+  <h2>逐字节校验</h2>
+  <p class="line">用固定输入跑一遍，和当初从浏览器加密函数里抠出来的两个参考值逐字节比对（参考值写死在页面里，不参与计算）。</p>
+  <div class="row"><button class="primary" id="verify">运行校验</button><span class="keyview" id="vtime"></span></div>
+  <ul class="vres" id="vres"></ul>
+</section>
+
+<section class="panel">
+  <h2>这套加密到底难在哪</h2>
+  <div class="note">
+    难的不是密码学，是「你不知道它怎么组合的」。真实链路是三层套娃：
+    <ol>
+      <li>随机取一个 16 位密钥 <code>i</code>（字符集只有 a–z A–Z 0–9）——所以每次请求密文都不一样；</li>
+      <li>先用固定密钥 <code>0CoJUm6Qyw8W8jud</code> 做一次 <b>AES-128-CBC</b>（IV 固定 <code>0102030405060708</code>，PKCS7 填充，结果转 base64）；</li>
+      <li>再用刚生成的随机密钥 <code>i</code> 做第二次 AES-CBC——<b>同一种算法套两层</b>，只换密钥；</li>
+      <li>最后把这个随机密钥本身用 <b>RSA</b> 加密成 <code>encSecKey</code> 一起发出去：密钥补零到 126 字节 → 按小端拼成一个大整数 → 模幂 → 输出十六进制。</li>
+    </ol>
+    服务端收到后能反推：用私钥解出 <code>i</code>，再用 <code>i</code> 解外层 AES、用固定密钥解内层 AES，拿到明文。
+    <div class="warn">最坑的一处是 RSA：它不是标准库那套「填充 + 大端」写法，而是自定义的「补零到 126 字节 + 小端拼大整数 + 无填充模幂」。用通用 RSA 库算出来永远对不上，只能照着它的算法一行行复刻。</div>
+  </div>
+</section>
+
+<script>
+/* ===== 常量：取自页面加密函数（固定参数） ===== */
+var MODULUS = "00e0b509f6259df8642dbc35662901477df22677ec152b5ff68ace615bb7b725152b3ab17a876aea8a5aa76d2e417629ec4ee341f56135fccf695280104e0312ecbda92557c93870114af6c9d05c4f7f0c3685b7a46bee255932575cce10b424d813cfe4875d3e82047b97ddef52741d546b8e289dc6935b3ece0462db0a22b8e7";
+var PUBKEY = "010001";
+var NONCE = "0CoJUm6Qyw8W8jud";
+var IVS = "0102030405060708";
+var CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+var CHUNK = 126;
+
+var enc = new TextEncoder();
+
+function randomKey(n){
+  var a = new Uint8Array(n), s = "";
+  crypto.getRandomValues(a);
+  for (var i = 0; i < n; i++) s += CHARS[a[i] % CHARS.length];
+  return s;
+}
+function toB64(bytes){
+  var s = "", step = 0x8000;
+  for (var i = 0; i < bytes.length; i += step) s += String.fromCharCode.apply(null, bytes.subarray(i, i + step));
+  return btoa(s);
+}
+/* AES-128-CBC + PKCS7（Web Crypto 的 CBC 自带 PKCS7 填充），结果 base64 */
+async function aesEncrypt(text, key){
+  var k = await crypto.subtle.importKey("raw", enc.encode(key), { name:"AES-CBC" }, false, ["encrypt"]);
+  var buf = await crypto.subtle.encrypt({ name:"AES-CBC", iv: enc.encode(IVS) }, k, enc.encode(text));
+  return toB64(new Uint8Array(buf));
+}
+/* RSA：补零到 126 字节 → 小端拼大整数 → c = m^e mod n → 十六进制（去前导零） */
+function rsaEncrypt(text){
+  var bytes = Array.from(enc.encode(text));
+  while (bytes.length % CHUNK !== 0) bytes.push(0);
+  var v = 0n;
+  for (var i = 0; i < bytes.length; i++) v |= BigInt(bytes[i]) << BigInt(8 * i);
+  var n = BigInt("0x" + MODULUS), e = BigInt("0x" + PUBKEY);
+  var r = 1n, base = v % n, exp = e;
+  while (exp > 0n){ if (exp & 1n) r = (r * base) % n; base = (base * base) % n; exp >>= 1n; }
+  return r.toString(16);
+}
+function short(s, n){ return s.length > (n || 46) ? s.slice(0, n || 46) + "…" : s; }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+var lastKey = "—";
+function stepCard(cls, no, title, meta, inLine, out){
+  return '<div class="step ' + cls + '">'
+    + '<div class="sh"><span class="t">' + no + ' · ' + title + '<em>' + meta + '</em></span></div>'
+    + '<div class="line">输入：' + esc(short(inLine, 74)) + '</div>'
+    + '<div class="code">' + esc(out) + '</div></div>';
+}
+
+function noCrypto(){
+  document.getElementById("steps").innerHTML =
+    '<div class="step s3"><div class="sh"><span class="t">当前环境用不了浏览器的加密接口</span></div>'
+    + '<div class="line">请用 https 打开这个页面，或者在本地用 127.0.0.1 起一个服务再访问——个别浏览器在直接双击本地文件时会禁用加密接口。</div></div>';
+}
+async function run(){
+  if (!(window.crypto && window.crypto.subtle)){ noCrypto(); return; }
+  var plain = document.getElementById("plain").value;
+  var t0 = performance.now();
+  lastKey = randomKey(16);
+  var a1 = await aesEncrypt(plain, NONCE);
+  var t1 = performance.now();
+  var a2 = await aesEncrypt(a1, lastKey);
+  var t2 = performance.now();
+  var rk = rsaEncrypt(lastKey);
+  var t3 = performance.now();
+
+  document.getElementById("keyview").textContent = lastKey;
+  document.getElementById("steps").innerHTML =
+      stepCard("s1", "第 1 层", "AES-128-CBC", "固定密钥 0CoJUm6Qyw8W8jud · " + (t1 - t0).toFixed(1) + " ms", plain, a1)
+    + stepCard("s2", "第 2 层", "AES-128-CBC", "本次随机密钥 " + lastKey + " · " + (t2 - t1).toFixed(1) + " ms", a1, a2)
+    + stepCard("s3", "第 3 层", "RSA（自定义）", "补零至 126 字节 → 小端模幂 · " + (t3 - t2).toFixed(1) + " ms", "随机密钥 " + lastKey, rk);
+
+  document.getElementById("o-params").innerHTML = '<button class="tiny cp" data-copy="o-params">复制</button>' + esc(a2);
+  document.getElementById("o-key").innerHTML = '<button class="tiny cp" data-copy="o-key">复制</button>' + esc(rk);
+}
+
+/* ===== 真值校验：两个参考值来自当初对着浏览器加密函数逐字节比对的记录 ===== */
+var REF_PLAIN = '{"s":"林俊杰","limit":"8","csrf_token":"01562503b22650749c554440c4a3a38d"}';
+var REF_AES1 = "1GPYHo/IkS9hDiM0Dj6g7yYRy2s46MsRe/YPaVJnnCHH4i/sGJPZ1Vc6TbOGW8u4LzsCgZkC3h74qNiV/2NIyLoatqKqCLKPOFn0fTI74tk=";
+var REF_RSA = "d446acb2826cbd3e9b453a2e992cc4c00eb97eba00c8841f288e92c8a2a610a4c5c543caf87b09503be5919ccca9b22cb3adfe8d21d49f3659e61abdc9a26c1afb45c011679dc168b52597250904effa1e11c08d1a478c750ed6d3715677b3d389fdf84b7e442e89c09905f92a703bc46c68e8e18091bc01662abe125f5497c6";
+
+async function verify(){
+  if (!(window.crypto && window.crypto.subtle)){ noCrypto(); return; }
+  var t0 = performance.now(), out = [];
+  var got1 = await aesEncrypt(REF_PLAIN, NONCE);
+  var ok1 = got1 === REF_AES1;
+  var got2 = rsaEncrypt("AbCd1234EfGh5678");
+  var ok2 = got2 === REF_RSA;
+  out.push(row(ok1, "AES 第一层 与页面加密函数输出", REF_AES1, got1));
+  out.push(row(ok2, "RSA 加密同一段密钥", REF_RSA, got2));
+  document.getElementById("vres").innerHTML = out.join("");
+  document.getElementById("vtime").textContent = "耗时 " + (performance.now() - t0).toFixed(1) + " ms";
+}
+function row(ok, name, want, got){
+  return '<li><span class="em">' + (ok ? "✅" : "❌") + '</span><span><b>' + esc(name) + '</b> '
+    + '<span class="verdict ' + (ok ? "ok" : "bad") + '">' + (ok ? "逐字节一致" : "不一致") + '</span><br>'
+    + '<span class="line">参考值 ' + esc(short(want, 58)) + '</span><br>'
+    + '<span class="line">本页算出 ' + esc(short(got, 58)) + '</span></span></li>';
+}
+
+document.getElementById("run").onclick = run;
+document.getElementById("verify").onclick = verify;
+document.getElementById("reroll").onclick = function(){ document.getElementById("keyview").textContent = randomKey(16); };
+document.addEventListener("click", function(e){
+  var b = e.target.closest("[data-copy]");
+  if (!b) return;
+  var el = document.getElementById(b.dataset.copy);
+  var txt = el.textContent.replace("复制", "").trim();
+  if (navigator.clipboard) navigator.clipboard.writeText(txt);
+  b.textContent = "已复制";
+  setTimeout(function(){ b.textContent = "复制"; }, 1200);
+});
+run();
+</script>
+</body>
+</html>

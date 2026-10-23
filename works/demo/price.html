@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mate 80 Pro · 历史价格监控</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23F4482B'/%3E%3Cpath d='M16 5.5l2.7 7.8 7.8 2.7-7.8 2.7L16 26.5l-2.7-7.8L5.5 16l7.8-2.7z' fill='%23fff'/%3E%3C/svg%3E" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+
+:root{--paper:#F8F4EC;--ink:#23203a;--ink-soft:#6b6580;--accent:#F4482B}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;background:var(--paper);color:var(--ink);line-height:1.7;padding:22px clamp(14px,3vw,28px) 30px}
+.mono{font-family:"DM Mono",monospace}
+.top{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+.top h1{font-size:clamp(19px,3vw,26px);font-weight:900;letter-spacing:-.5px}
+.top .tag{font-family:"DM Mono",monospace;font-size:11px;color:var(--ink-soft);border:2px solid var(--ink);border-radius:999px;padding:2px 12px;background:#fff}
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 18px}
+.chip{background:#fff;border:2px solid var(--ink);border-radius:14px;padding:10px 16px;box-shadow:3px 3px 0 rgba(35,32,58,.14);min-width:96px}
+.chip b{display:block;font-size:20px;font-weight:900;line-height:1.2}
+.chip span{font-size:12px;color:var(--ink-soft);font-weight:700}
+
+.wrap{background:#fff;border:2px solid var(--ink);border-radius:22px;padding:clamp(16px,3vw,28px);box-shadow:6px 6px 0 rgba(35,32,58,.12)}
+.cw{position:relative;height:min(56vh,440px)}
+@media(max-width:640px){.cw{height:320px}}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>Mate 80 Pro · 历史价格监控</h1>
+  <span class="tag">DEMO · 真实采集数据</span>
+</div>
+<div class="chips">
+  <div class="chip"><b>10</b><span>次监控扫描</span></div>
+  <div class="chip"><b>¥1088</b><span>历史最低</span></div>
+  <div class="chip"><b>¥4480</b><span>历史最高</span></div>
+  <div class="chip"><b>¥3276</b><span>平均价</span></div>
+  <div class="chip"><b>-71%</b><span>累计降幅</span></div>
+</div>
+<div class="wrap"><div class="cw"><canvas id="pc"></canvas></div></div>
+<p style="margin-top:12px;font-size:13px;color:var(--ink-soft)">提示：悬停看每次扫描的价格与商品，点击圆点可跳转对应商品页。</p>
+<script>
+var DATA = [{"title":"Huawei/华为 Mate 80 Pro正品政府补贴鸿蒙pUrA90pRO官方官网手机","price":4299,"url":"https://item.taobao.com/item.htm?id=1069191610233"},{"title":"Huawei/华为 Mate 80 Pro正品政府补贴鸿蒙pUrA90pRO官方官网手机","price":4150.5,"url":"https://item.taobao.com/item.htm?id=1069191610233"},{"title":"Huawei/华为 Mate 80 Pro正品政府补贴鸿蒙pUrA90pRO官方官网手机","price":4480,"url":"https://item.taobao.com/item.htm?id=1069191610233"},{"title":"Huawei/华为 Mate 80 Pro正品政府补贴鸿蒙pUrA90pRO官方官网手机","price":3999,"url":"https://item.taobao.com/item.htm?id=1069191610233"},{"title":"Huawei/华为 Mate 80 Pro正品政府补贴鸿蒙pUrA90pRO官方官网手机","price":3728.8,"url":"https://item.taobao.com/item.htm?id=1069191610233"},{"title":"Huawei/华为 Mate 80 Pro正品政府补贴鸿蒙pUrA90pRO官方官网手机","price":3510,"url":"https://item.taobao.com/item.htm?id=1069191610233"},{"title":"Huawei/华为 Mate 80 Pro正品政府补贴鸿蒙pUrA90pRO官方官网手机","price":3266.25,"url":"https://item.taobao.com/item.htm?id=1069191610233"},{"title":"Huawei/华为 Mate 80 Pro正品政府补贴鸿蒙pUrA90pRO官方官网手机","price":2988,"url":"https://item.taobao.com/item.htm?id=1069191610233"},{"title":"Huawei/华为 Mate 80 Pro正品政府补贴鸿蒙pUrA90pRO官方官网手机","price":1088,"url":"https://item.taobao.com/item.htm?id=1069191610233"},{"title":"Huawei/华为 Mate 80 Pro正品政府补贴鸿蒙pUrA90pRO官方官网手机","price":1250,"url":"https://item.taobao.com/item.htm?id=1069191610233"}];
+var labels = DATA.map(function(_, i){ return "第" + (i + 1) + "次"; });
+var ps = DATA.map(function(d){ return d.price; });
+var ts = DATA.map(function(d){ return d.title; });
+var us = DATA.map(function(d){ return d.url; });
+new Chart(document.getElementById("pc"), {
+  type: "line",
+  data: { labels: labels, datasets: [{
+    label: "价格 (元)", data: ps, tension: .4,
+    borderColor: "#F4482B", borderWidth: 2.5,
+    pointBackgroundColor: ps.map(function(p){ return p === Math.min.apply(null, ps) ? "#7CCB1E" : "#F4482B"; }),
+    pointBorderColor: "#fff", pointBorderWidth: 2, pointRadius: 6, pointHoverRadius: 10,
+    backgroundColor: "rgba(244,72,43,.08)", fill: true
+  }]},
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { labels: { usePointStyle: true, padding: 16, font: { size: 12 } } },
+      tooltip: { callbacks: {
+        title: function(c){ return labels[c[0].dataIndex]; },
+        label: function(c){ return "价格：¥" + ps[c.dataIndex].toFixed(2); },
+        afterLabel: function(c){ var t = ts[c.dataIndex]; return "商品：" + (t.length > 26 ? t.slice(0, 26) + "…" : t); }
+      } } },
+    scales: {
+      x: { title: { display: true, text: "监控扫描次数", font: { weight: "bold" } }, grid: { display: false } },
+      y: { title: { display: true, text: "价格 (元)", font: { weight: "bold" } }, ticks: { callback: function(v){ return "¥" + v; } } }
+    },
+    onClick: function(e, els){ if (els.length && us[els[0].index]) window.open(us[els[0].index], "_blank"); }
+  }
+});
+</script>
+</body>
+</html>

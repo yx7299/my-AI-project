@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>二手车采集结果 · 数据看板</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23F4482B'/%3E%3Cpath d='M16 5.5l2.7 7.8 7.8 2.7-7.8 2.7L16 26.5l-2.7-7.8L5.5 16l7.8-2.7z' fill='%23fff'/%3E%3C/svg%3E" />
+<style>
+
+:root{--paper:#F8F4EC;--ink:#23203a;--ink-soft:#6b6580;--accent:#F4482B}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;background:var(--paper);color:var(--ink);line-height:1.7;padding:22px clamp(14px,3vw,28px) 30px}
+.mono{font-family:"DM Mono",monospace}
+.top{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+.top h1{font-size:clamp(19px,3vw,26px);font-weight:900;letter-spacing:-.5px}
+.top .tag{font-family:"DM Mono",monospace;font-size:11px;color:var(--ink-soft);border:2px solid var(--ink);border-radius:999px;padding:2px 12px;background:#fff}
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 18px}
+.chip{background:#fff;border:2px solid var(--ink);border-radius:14px;padding:10px 16px;box-shadow:3px 3px 0 rgba(35,32,58,.14);min-width:96px}
+.chip b{display:block;font-size:20px;font-weight:900;line-height:1.2}
+.chip span{font-size:12px;color:var(--ink-soft);font-weight:700}
+
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.fbtn{font:inherit;font-size:13px;font-weight:700;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:5px 14px;cursor:pointer;transition:.15s}
+.fbtn:hover{transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--ink)}
+.fbtn.on{background:var(--accent);color:#fff}
+select{font:inherit;font-size:13px;font-weight:700;border:2px solid var(--ink);border-radius:999px;padding:5px 12px;background:#fff;cursor:pointer;margin-left:auto}
+.tbl{width:100%;border-collapse:collapse;background:#fff;border:2px solid var(--ink);border-radius:18px;overflow:hidden;box-shadow:6px 6px 0 rgba(35,32,58,.12);font-size:14px}
+.tbl th{background:var(--ink);color:#fff;text-align:left;padding:10px 14px;font-size:13px;white-space:nowrap}
+.tbl td{padding:10px 14px;border-top:2px solid #eee7da;vertical-align:top}
+.tbl tr:hover td{background:#fdf9f0}
+.tbl .pr{font-weight:900;color:var(--accent);white-space:nowrap}
+.badge{display:inline-block;font-size:12px;font-weight:700;border:2px solid var(--ink);border-radius:999px;padding:1px 10px;background:#FFE8A3}
+.empty{padding:30px;text-align:center;color:var(--ink-soft);font-weight:700}
+@media(max-width:640px){.tbl .hide-m{display:none}}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>二手车采集结果 · 40 台</h1>
+  <span class="tag">DEMO · 真实采集数据</span>
+</div>
+<div class="chips">
+  <div class="chip"><b>40</b><span>采集条目</span></div>
+  <div class="chip"><b>1.8万</b><span>均价</span></div>
+  <div class="chip"><b>1.0万</b><span>最低价</span></div>
+  <div class="chip"><b>3</b><span>覆盖城市</span></div>
+  <div class="chip"><b>37.3万km</b><span>最大里程</span></div>
+</div>
+<div class="bar" id="cityBar"></div>
+<div style="overflow-x:auto">
+<table class="tbl">
+  <thead><tr><th>车型</th><th>年份</th><th>里程</th><th class="hide-m">城市</th><th>价格</th><th class="hide-m">优惠</th></tr></thead>
+  <tbody id="tbody"></tbody>
+</table>
+</div>
+<script>
+var CARS = [{"title":"本田 锋范 2015款 1.5L 手动舒适版","year":2016,"mileage":16.32,"location":"成都","price":1.62,"unit":"万","discount":"已减1.40万"},{"title":"吉利汽车 海景 2015款 1.5L 手动精英型","year":2015,"mileage":10.95,"location":"西安","price":1.16,"unit":"万","discount":"已减9000元"},{"title":"凯翼X5 2017款 2.0L CVT豪华型","year":2018,"mileage":6.17,"location":"成都","price":1.66,"unit":"万","discount":"已减1.16万"},{"title":"现代 维拉克斯 2009款 3.8L 舒适版","year":2011,"mileage":21.01,"location":"成都","price":1.84,"unit":"万","discount":"已减1.41万"},{"title":"斯柯达 晶锐 2014款 1.4L 手动晶灵版","year":2014,"mileage":8.21,"location":"成都","price":1.14,"unit":"万","discount":"已减7100元"},{"title":"Jeep 大切诺基(进口) 2012款 3.6L 周年导航版","year":2013,"mileage":26.84,"location":"成都","price":2.78,"unit":"万","discount":"已减1.73万"},{"title":"哈弗H2 2017款 红标 1.5T 手动两驱舒适型","year":2017,"mileage":10.15,"location":"成都","price":1.47,"unit":"万","discount":"已减9000元"},{"title":"大众 Tiguan 2012款 2.0TSI 豪华版","year":2016,"mileage":18.6,"location":"成都","price":3,"unit":"万","discount":"已减1.76万"},{"title":"标致3008 2015款 1.6THP 罗兰·加洛斯版","year":2016,"mileage":5.05,"location":"成都","price":2.5,"unit":"万","discount":"已减1.45万"},{"title":"马自达 阿特兹 2014款 2.5L 蓝天尊崇版","year":2014,"mileage":19.16,"location":"成都","price":2.41,"unit":"万","discount":"已减1.36万"},{"title":"大众 桑塔纳 2015款 1.4L 手动舒适版","year":2016,"mileage":10.6,"location":"成都","price":1.23,"unit":"万","discount":"已减6800元"},{"title":"别克 昂科拉 2016款 18T 自动两驱都市时尚型","year":2016,"mileage":15.17,"location":"成都","price":1.56,"unit":"万","discount":"已减8500元"},{"title":"长安CS35 2015款 1.6L 自动尊贵型 国V","year":2016,"mileage":16.13,"location":"成都","price":1.26,"unit":"万","discount":"已减6900元"},{"title":"奔驰E级 2013款 E 260 L CGI时尚型","year":2013,"mileage":37.28,"location":"成都","price":2.43,"unit":"万","discount":"已减1.32万"},{"title":"五菱汽车 五菱宏光 2014款 1.2L 标准型国IV","year":2025,"mileage":6.57,"location":"成都","price":1.57,"unit":"万","discount":"已减8400元"},{"title":"众泰T600 2017款 1.5T 手动豪华贺岁版","year":2017,"mileage":5.66,"location":"成都","price":2.02,"unit":"万","discount":"已减1.08万"},{"title":"大众 桑塔纳 2015款 1.6L 手动舒适版","year":2015,"mileage":12.5,"location":"成都","price":1.17,"unit":"万","discount":"已减6200元"},{"title":"大众 速腾 2014款 改款 1.6L 手动领先型","year":2014,"mileage":17.65,"location":"成都","price":1.49,"unit":"万","discount":"已减9100元"},{"title":"名爵 锐腾 2015款 2.0TGI TST豪华版","year":2015,"mileage":10.38,"location":"成都","price":1.21,"unit":"万","discount":"已减6100元"},{"title":"东风风行 风行S500 2016款 1.6L CVT豪华型","year":2016,"mileage":15.01,"location":"成都","price":1.06,"unit":"万","discount":"已减7000元"},{"title":"奥迪Q5(进口) 2010款 3.2FSI 运动版","year":2013,"mileage":25.45,"location":"成都","price":2.45,"unit":"万","discount":"已减1.23万"},{"title":"捷途X70 2018款 1.5T 自动畅行版","year":2019,"mileage":7.02,"location":"成都","price":2.72,"unit":"万","discount":"已减1.35万"},{"title":"现代 索纳塔 2014款 2.0L 自动尊贵版","year":2014,"mileage":9.87,"location":"成都","price":2.01,"unit":"万","discount":"已减9800元"},{"title":"奥迪A6L 2010款 2.8 FSI 舒适型","year":2011,"mileage":18.39,"location":"成都","price":2.3,"unit":"万","discount":"已减1.25万"},{"title":"哈弗H1 2016款 改款 蓝标 1.5L AMT尊贵型","year":2016,"mileage":5.21,"location":"成都","price":1.46,"unit":"万","discount":"已减7100元"},{"title":"东风风行 菱智 2016款 V3 1.5L 7座标准型 国V","year":2017,"mileage":7.55,"location":"西安","price":1.27,"unit":"万","discount":"已减6100元"},{"title":"现代 索纳塔 2014款 2.0L 自动尊贵版","year":2014,"mileage":11.43,"location":"成都","price":2.08,"unit":"万","discount":"已减9900元"},{"title":"凯迪拉克XTS 2013款 28T 科技型","year":2013,"mileage":26,"location":"成都","price":2.43,"unit":"万","discount":"已减1.13万"},{"title":"大众 帕萨特 2013款 3.0L V6 DSG旗舰版","year":2014,"mileage":18.32,"location":"成都","price":2.66,"unit":"万","discount":"已减1.30万"},{"title":"启辰T70 2015款 2.0L 手动睿趣版","year":2015,"mileage":13.63,"location":"重庆","price":1.03,"unit":"万","discount":"已减6400元"},{"title":"大众 捷达 2017款 1.4L 手动时尚型","year":2018,"mileage":10.78,"location":"成都","price":1.62,"unit":"万","discount":"已减7500元"},{"title":"雪铁龙 世嘉 2013款 1.6L 手动品尚型CNG","year":2014,"mileage":13.6,"location":"成都","price":1.16,"unit":"万","discount":"已减5400元"},{"title":"MINI Clubman 2011款 1.6L ONE","year":2014,"mileage":21.55,"location":"成都","price":2.67,"unit":"万","discount":"已减1.23万"},{"title":"长安CS75 2017款 尚酷版 1.5T 自动锋锐型","year":2017,"mileage":8.53,"location":"成都","price":1.8,"unit":"万","discount":"已减8200元"},{"title":"斯巴鲁 森林人 2013款 2.5i 自动尊贵导航版","year":2015,"mileage":24.61,"location":"成都","price":2.42,"unit":"万","discount":"已减1.10万"},{"title":"金杯 小海狮X30 2019款 1.5L 标准型国VI SWC15M","year":2020,"mileage":8.24,"location":"重庆","price":1.26,"unit":"万","discount":"已减6000元"},{"title":"现代 朗动 2016款 1.6L 自动尊贵型","year":2017,"mileage":18.02,"location":"成都","price":1.88,"unit":"万","discount":"已减8500元"},{"title":"哈弗H2 2015款 1.5T 自动两驱精英版","year":2015,"mileage":9.81,"location":"成都","price":1.18,"unit":"万","discount":"已减5300元"},{"title":"江汽集团 瑞风M5 2017款 2.0T 汽油双离合商务版","year":2018,"mileage":21.15,"location":"成都","price":2.13,"unit":"万","discount":"已减9500元"},{"title":"宝马X1 2013款 sDrive18i 运动设计套装","year":2013,"mileage":11.39,"location":"成都","price":2.13,"unit":"万","discount":"已减9500元"}];
+var city = "全部", sort = "default";
+var bar = document.getElementById("cityBar");
+var cities = ["全部"].concat(["成都","西安","重庆"]);
+cities.forEach(function(c){
+  var b = document.createElement("button");
+  b.className = "fbtn" + (c === "全部" ? " on" : ""); b.textContent = c;
+  b.onclick = function(){ city = c; [].forEach.call(bar.children, function(x){ x.classList.remove("on"); }); b.classList.add("on"); render(); };
+  bar.appendChild(b);
+});
+var sel = document.createElement("select");
+[["default","排序：默认"],["priceAsc","价格 从低到高"],["priceDesc","价格 从高到低"],["mileAsc","里程 从低到高"],["yearDesc","年份 从新到旧"]].forEach(function(o){
+  var op = document.createElement("option"); op.value = o[0]; op.textContent = o[1]; sel.appendChild(op);
+});
+sel.onchange = function(){ sort = sel.value; render(); };
+bar.appendChild(sel);
+function render(){
+  var rows = CARS.filter(function(c){ return city === "全部" || c.location === city; });
+  if (sort === "priceAsc") rows = rows.slice().sort(function(a,b){ return a.price - b.price; });
+  if (sort === "priceDesc") rows = rows.slice().sort(function(a,b){ return b.price - a.price; });
+  if (sort === "mileAsc") rows = rows.slice().sort(function(a,b){ return a.mileage - b.mileage; });
+  if (sort === "yearDesc") rows = rows.slice().sort(function(a,b){ return b.year - a.year; });
+  var tb = document.getElementById("tbody");
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="6" class="empty">该城市暂无数据</td></tr>'; return; }
+  tb.innerHTML = rows.map(function(c){
+    return "<tr><td><b>" + c.title + "</b></td><td>" + c.year + "</td><td>" + c.mileage.toFixed(2) + "万km</td>" +
+      '<td class="hide-m">' + c.location + "</td>" +
+      '<td class="pr">' + c.price.toFixed(2) + c.unit + "</td>" +
+      '<td class="hide-m">' + (c.discount ? '<span class="badge">' + c.discount + "</span>" : "—") + "</td></tr>";
+  }).join("");
+}
+render();
+</script>
+</body>
+</html>

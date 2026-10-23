@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>计划管理后端</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23F4482B'/%3E%3Cpath d='M16 5.5l2.7 7.8 7.8 2.7-7.8 2.7L16 26.5l-2.7-7.8L5.5 16l7.8-2.7z' fill='%23fff'/%3E%3C/svg%3E" />
+<style>
+:root{--paper:#F8F4EC;--ink:#23203a;--soft:#6b6580;--accent:#10B6A6;--code:#26233a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;background:var(--paper);color:var(--ink);line-height:1.65;padding:18px clamp(12px,3vw,24px) 26px}
+.mono,code,pre{font-family:"DM Mono",Consolas,monospace}
+h1{font-size:clamp(18px,2.8vw,23px);font-weight:900}
+.sub{color:var(--soft);font-size:12.5px;font-weight:700;margin:3px 0 14px}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+@media(max-width:860px){.wrap{grid-template-columns:1fr}}
+.panel{background:#fff;border:2px solid var(--ink);border-radius:18px;padding:14px;box-shadow:4px 4px 0 rgba(35,32,58,.13);margin-bottom:12px}
+h2{font-size:13px;font-weight:900;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+h2::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--accent);border:2px solid var(--ink);flex:none}
+h2 .dim{margin-left:auto;font-size:11px;color:var(--soft);font-weight:700}
+input,select,textarea{font:inherit;font-size:12.5px;border:2px solid var(--ink);border-radius:10px;padding:7px 10px;background:var(--paper);color:var(--ink);width:100%}
+textarea{min-height:52px;resize:vertical;line-height:1.55}
+label.f{display:block;font-size:11px;font-weight:900;color:var(--soft);margin:0 0 4px 2px;letter-spacing:.3px}
+.fg{margin-bottom:9px}
+button{font:inherit;font-weight:900;font-size:12.5px;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:6px 15px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);transition:.14s;white-space:nowrap}
+button:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink)}
+button.primary{background:var(--ink);color:#fff}
+button.x{padding:1px 9px;font-size:11px;box-shadow:2px 2px 0 var(--ink);border-radius:7px}
+.plan{border:2px solid var(--ink);border-radius:12px;padding:9px 11px;background:var(--paper);margin-bottom:8px;display:flex;gap:9px;align-items:flex-start}
+.plan .txt{flex:1;min-width:0}
+.plan .t{font-size:13px;font-weight:700}
+.plan .m{font-size:10.5px;color:var(--soft);font-family:"DM Mono",monospace;margin-top:3px}
+.tag{font-size:10.5px;font-weight:900;border:2px solid var(--ink);border-radius:99px;padding:0 8px;flex:none}
+.t-work{background:#2E6FE6;color:#fff}
+.t-study{background:#FFC21A;color:#23203a}
+.t-life{background:#7CCB1E;color:#23203a}
+.log{border:2px solid var(--ink);border-radius:12px;background:var(--code);color:#ddd8f2;padding:9px 11px;font-size:11px;line-height:1.55;margin-bottom:8px;overflow:auto}
+.log .line1{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
+.log .mth{font-weight:700;color:#8ef0d8}
+.log .st{font-weight:700;color:#b6f36a}
+.log .ms{color:#9d95bd}
+.log pre{margin:0;white-space:pre-wrap;word-break:break-all;color:#cfc8ea;font-size:10.5px}
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+th,td{border:2px solid var(--ink);padding:4px 8px;text-align:left;font-family:"DM Mono",monospace}
+th{background:var(--paper);font-weight:700}
+.empty{font-size:11.5px;color:var(--soft);font-weight:700}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.note{font-size:11.5px;color:#3a3550}
+.note b{font-weight:900}
+.note code{background:var(--paper);border:1.5px solid var(--ink);border-radius:6px;padding:0 5px;font-size:11px}
+</style>
+</head>
+<body>
+
+<h1>计划管理后端</h1>
+<p class="sub">一套真的会落库的接口：提交计划 → 发请求 → 后端写数据库 → 返回 JSON。右边把每次请求都记下来。</p>
+
+<div class="wrap">
+  <div>
+    <section class="panel">
+      <h2>新增计划 <span class="dim">POST /add_plan</span></h2>
+      <div class="fg"><label class="f">时间段</label><input id="f-time" placeholder="例：上午 9:00 - 10:00" /></div>
+      <div class="fg"><label class="f">计划内容</label><textarea id="f-title" placeholder="例：把接口联调跑通"></textarea></div>
+      <div class="fg"><label class="f">分类</label>
+        <select id="f-desc"><option value="工作">工作</option><option value="学习">学习</option><option value="生活">生活</option></select>
+      </div>
+      <button class="primary" id="submit">提交计划</button>
+    </section>
+
+    <section class="panel">
+      <h2>计划列表 <span class="dim" id="pcount"></span></h2>
+      <div id="plist"></div>
+    </section>
+
+    <section class="panel">
+      <h2>数据库里的 plan 表 <span class="dim">SQLite</span></h2>
+      <div id="dbtable"></div>
+    </section>
+  </div>
+
+  <div>
+    <section class="panel">
+      <h2>接口调用日志 <span class="dim"><button class="x" id="clear">清空</button></span></h2>
+      <div id="logs"><div class="empty">还没有请求。左边提交一条计划试试。</div></div>
+    </section>
+
+    <section class="panel">
+      <h2>真实后端长什么样</h2>
+      <div class="note">
+        真机版是 <b>Flask + SQLAlchemy + SQLite</b>，跑在 <code>127.0.0.1:5001</code>，核心就三件事：<br>
+        ① 定义模型 —— 一张 <code>plan</code> 表，字段 <code>id / time / title / desc</code>；<br>
+        ② 写路由 —— <code>/add_plan</code> 收 JSON、塞进会话、commit 落库，返回 <code>{"msg":"新增数据成功"}</code>；<br>
+        ③ 开跨域 —— 前端页面才能直接请求它。<br><br>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;background:var(--paper);border:2px solid var(--ink);border-radius:10px;padding:9px 11px;line-height:1.6">
+@app.route('/add_plan', methods=['POST'])<br>
+def add_plan():<br>
+&nbsp;&nbsp;data = request.get_json()<br>
+&nbsp;&nbsp;plan = Plan(time=data['time'], title=data['title'], desc=data['desc'])<br>
+&nbsp;&nbsp;db.session.add(plan)<br>
+&nbsp;&nbsp;db.session.commit()<br>
+&nbsp;&nbsp;return jsonify({'msg': '新增数据成功'})
+        </div>
+        <div style="margin-top:9px" class="dim">这个页面里没有 Python，进程跑不起来；所以数据库换成本地存储、请求换成本地拦截，<b>但请求体、响应、表结构、字段名都和真机一致</b>，方便对着写前端。</div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+var KEY = "plan_db_v1";
+var LOGS = [];
+
+function load(){ try { var r = localStorage.getItem(KEY); if (r) return JSON.parse(r); } catch(e){} return [
+  { id:1, time:"上午 9:00 - 10:00", title:"把接口联调跑通", desc:"工作" },
+  { id:2, time:"下午 3:00 - 4:00", title:"复习 SQLAlchemy 查询", desc:"学习" }
+]; }
+var DB = load();
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch(e){} }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function nextId(){ return DB.reduce(function(a, p){ return Math.max(a, p.id); }, 0) + 1; }
+
+function renderList(){
+  document.getElementById("pcount").textContent = DB.length + " 条";
+  document.getElementById("plist").innerHTML = DB.length ? DB.map(function(p){
+    var cls = p.desc === "工作" ? "t-work" : p.desc === "学习" ? "t-study" : "t-life";
+    return '<div class="plan"><span class="tag ' + cls + '">' + esc(p.desc) + '</span>'
+      + '<span class="txt"><span class="t">' + esc(p.title) + '</span>'
+      + '<span class="m">id=' + p.id + ' · time=' + esc(p.time) + '</span></span>'
+      + '<button class="x" data-del="' + p.id + '">✕</button></div>';
+  }).join("") : '<div class="empty">一条计划都没有。</div>';
+}
+function renderTable(){
+  document.getElementById("dbtable").innerHTML = DB.length
+    ? '<table><tr><th>id</th><th>time</th><th>title</th><th>desc</th></tr>'
+      + DB.map(function(p){ return '<tr><td>' + p.id + '</td><td>' + esc(p.time) + '</td><td>' + esc(p.title) + '</td><td>' + esc(p.desc) + '</td></tr>'; }).join("")
+      + '</table>'
+    : '<div class="empty">表是空的。</div>';
+}
+function addLog(method, path, payload, resp, status, ms){
+  LOGS.unshift({ method:method, path:path, payload:payload, resp:resp, status:status, ms:ms });
+  if (LOGS.length > 14) LOGS.pop();
+  document.getElementById("logs").innerHTML = LOGS.map(function(l){
+    return '<div class="log"><div class="line1"><span class="mth">' + l.method + '</span><span>' + esc(l.path) + '</span>'
+      + '<span class="st">' + l.status + '</span><span class="ms">' + l.ms + ' ms</span></div>'
+      + '<pre>请求: ' + esc(JSON.stringify(l.payload)) + '\n响应: ' + esc(JSON.stringify(l.resp)) + '</pre></div>';
+  }).join("");
+}
+
+document.getElementById("submit").onclick = function(){
+  var time = document.getElementById("f-time").value.trim();
+  var title = document.getElementById("f-title").value.trim();
+  var desc = document.getElementById("f-desc").value;
+  if (!time || !title) return;
+  var t0 = performance.now();
+  var payload = { time:time, title:title, desc:desc };      // 和真机请求体一模一样
+  var plan = { id:nextId(), time:time, title:title, desc:desc };
+  DB.push(plan); save();
+  var resp = { msg:"新增数据成功" };
+  var ms = Math.max(1, Math.round(performance.now() - t0)) + 3;
+  renderList(); renderTable();
+  addLog("POST", "/add_plan", payload, resp, 200, ms);
+  document.getElementById("f-time").value = "";
+  document.getElementById("f-title").value = "";
+};
+document.addEventListener("click", function(e){
+  var b = e.target.closest("[data-del]");
+  if (!b) return;
+  var id = +b.dataset.del;
+  var t0 = performance.now();
+  DB = DB.filter(function(p){ return p.id !== id; });
+  save(); renderList(); renderTable();
+  addLog("DELETE", "/plan/" + id, { id:id }, { msg:"删除成功" }, 200, Math.max(1, Math.round(performance.now() - t0)) + 2);
+});
+document.getElementById("clear").onclick = function(){
+  LOGS = [];
+  document.getElementById("logs").innerHTML = '<div class="empty">日志已清空。</div>';
+};
+renderList(); renderTable();
+</script>
+</body>
+</html>

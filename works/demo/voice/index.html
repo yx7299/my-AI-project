@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>语音交互助手</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23F4482B'/%3E%3Cpath d='M16 5.5l2.7 7.8 7.8 2.7-7.8 2.7L16 26.5l-2.7-7.8L5.5 16l7.8-2.7z' fill='%23fff'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- 演示模式提示：这份界面与真实版本完全一致，只是后端换成了浏览器本地实现 -->
+    <div style="margin:0 0 10px;padding:8px 14px;border-radius:12px;font-size:12.5px;line-height:1.6;
+                background:rgba(255,193,26,.16);border:1px solid rgba(35,32,58,.22);color:inherit">
+      <b>演示模式 · 未连接后端</b> —— 语音识别与朗读由浏览器完成，回答由页面内置的本地检索生成；
+      正式版里这两步分别由大模型和 edge-tts 完成，音色更自然、能自由上传知识库。
+    </div>
+
+    <!-- ===== 顶部：标题 + 知识库入口 + 环境状态 ===== -->
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <h1>语音交互助手</h1>
+      </div>
+      <div class="header-right">
+        <button id="kbToggle" class="kb-toggle" type="button" title="管理知识库">
+          📚 知识库
+          <span id="kbBadge" class="kb-badge">0</span>
+        </button>
+        <div id="statusPill" class="status-pill" title="后端接口状态">
+          <span class="pill-dot"></span>
+          <span id="statusText">正在连接…</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== 知识库面板（默认收起） ===== -->
+    <section id="kbPanel" class="kb-panel" hidden>
+      <div class="kb-head">
+        <strong>知识库</strong>
+        <span class="kb-tip">支持 .md / .txt，单个文件最大 2 MB；上传后助手会自己去查</span>
+      </div>
+
+      <div id="kbDrop" class="kb-drop">
+        <span>把文件拖到这里，或</span>
+        <label class="kb-pick">
+          选择文件
+          <input type="file" id="kbFile" accept=".md,.txt,.markdown" multiple hidden />
+        </label>
+      </div>
+
+      <ul id="kbList" class="kb-list"></ul>
+      <p id="kbEmpty" class="kb-empty">还没有上传任何资料</p>
+    </section>
+
+    <!-- ===== 中间：对话记录区 ===== -->
+    <main id="chatLog" class="chat-log" aria-live="polite">
+      <div class="empty-tip" id="emptyTip">
+        <div class="empty-icon">🎙️</div>
+        <p>点击下方麦克风，直接说出你的问题</p>
+        <p class="empty-sub">例如：「星辰盒子多少钱」「年假有几天」「保修多久」</p>
+        <p class="empty-sub">先在上方「知识库」上传资料，就能问我资料里的内容</p>
+      </div>
+    </main>
+
+    <!-- ===== 临时识别结果（说话过程中实时显示） ===== -->
+    <div id="interim" class="interim" hidden>
+      <span class="interim-label">正在听</span>
+      <span id="interimText" class="interim-text"></span>
+    </div>
+
+    <!-- ===== 底部：麦克风 + 兜底文字输入 ===== -->
+    <footer class="app-footer">
+
+      <!-- 参数区：朗读引擎 / 音色 / 自动朗读 / 记忆 / 清空 -->
+      <div class="options">
+        <label class="option">
+          <span>朗读引擎</span>
+          <select id="engineSelect">
+            <option value="edge" selected>edge-tts（更自然）</option>
+            <option value="browser">浏览器语音合成</option>
+          </select>
+        </label>
+        <label class="option">
+          <span>音色</span>
+          <select id="voiceSelect"></select>
+        </label>
+        <label class="option switch">
+          <input type="checkbox" id="autoSpeak" checked />
+          <span>自动朗读</span>
+        </label>
+        <label class="option switch">
+          <input type="checkbox" id="showTrace" checked />
+          <span>显示决策过程</span>
+        </label>
+        <span id="memoryBadge" class="memory-badge">记忆 0/10 轮</span>
+        <button id="clearBtn" class="link-btn" type="button">清空对话</button>
+      </div>
+
+      <!-- 主操作区 -->
+      <div class="control">
+        <button id="micBtn" class="mic-btn" title="点击开始 / 结束录音" aria-label="开始录音">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3z" />
+            <path d="M19 11a7 7 0 0 1-14 0H3a9 9 0 0 0 8 8.94V22h2v-2.06A9 9 0 0 0 21 11h-2z" />
+          </svg>
+        </button>
+        <p id="micHint" class="mic-hint">点击麦克风开始说话</p>
+
+        <!-- 浏览器不支持语音识别时，仍然可以打字（用于调试 / 保底） -->
+        <form id="textForm" class="text-form">
+          <input id="textInput" type="text" placeholder="麦克风不便使用时，在这里打字提问…" autocomplete="off" />
+          <button type="submit" id="sendBtn">发送</button>
+        </form>
+      </div>
+    </footer>
+  </div>
+
+  <!-- 提示条（错误 / 成功信息） -->
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

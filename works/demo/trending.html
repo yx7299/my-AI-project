@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GitHub 热门巡检</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23F4482B'/%3E%3Cpath d='M16 5.5l2.7 7.8 7.8 2.7-7.8 2.7L16 26.5l-2.7-7.8L5.5 16l7.8-2.7z' fill='%23fff'/%3E%3C/svg%3E" />
+<style>
+:root{--paper:#F8F4EC;--ink:#23203a;--soft:#6b6580;--accent:#FFC21A}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;background:var(--paper);color:var(--ink);line-height:1.65;padding:18px clamp(12px,3vw,24px) 26px}
+.mono,code{font-family:"DM Mono",Consolas,monospace}
+h1{font-size:clamp(18px,2.8vw,23px);font-weight:900}
+.sub{color:var(--soft);font-size:12.5px;font-weight:700;margin:3px 0 14px}
+.panel{background:#fff;border:2px solid var(--ink);border-radius:18px;padding:14px;box-shadow:4px 4px 0 rgba(35,32,58,.13);margin-bottom:12px}
+h2{font-size:13px;font-weight:900;margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+h2::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--accent);border:2px solid var(--ink);flex:none}
+h2 .dim{margin-left:auto;font-size:11px;color:var(--soft);font-weight:700}
+button{font:inherit;font-weight:900;font-size:12.5px;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:6px 16px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);transition:.14s}
+button:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink)}
+button.primary{background:var(--ink);color:#fff}
+button:disabled{opacity:.5;cursor:default;transform:none;box-shadow:3px 3px 0 var(--ink)}
+.pipe{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.pnode{flex:1;min-width:132px;border:2px solid var(--ink);border-radius:13px;padding:9px 11px;background:var(--paper);opacity:.42;transition:.25s}
+.pnode.on{opacity:1;background:#fff;box-shadow:3px 3px 0 rgba(35,32,58,.14)}
+.pnode .n{font-family:"DM Mono",monospace;font-size:10px;color:var(--soft);font-weight:700}
+.pnode .t{font-size:12.5px;font-weight:900;margin:1px 0 2px}
+.pnode .d{font-size:11px;color:var(--soft);font-weight:700}
+.src{font-size:11px;font-weight:700;border:2px solid var(--ink);border-radius:99px;padding:1px 10px;background:#fff}
+.src.live{background:#DFF6C8}
+.src.snap{background:#FFE9C7}
+.rep{border:2px solid var(--ink);border-radius:14px;padding:11px 13px;background:#fff;margin-bottom:9px;box-shadow:3px 3px 0 rgba(35,32,58,.1)}
+.rep .r1{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.rep .nm{font-size:13.5px;font-weight:900;flex:1;min-width:160px;word-break:break-all}
+.rep .nm a{color:inherit;text-decoration:none;border-bottom:2px solid var(--accent)}
+.rep .sc{font-family:"DM Mono",monospace;font-weight:700;font-size:15px;flex:none}
+.rep .vs{font-size:10.5px;font-weight:900;border:2px solid var(--ink);border-radius:99px;padding:1px 9px;flex:none;white-space:nowrap}
+.v-good{background:#7CCB1E}
+.v-mid{background:#FFC21A}
+.v-bad{background:#F4482B;color:#fff}
+.track{height:9px;background:var(--paper);border:2px solid var(--ink);border-radius:99px;overflow:hidden;margin:7px 0 6px}
+.track i{display:block;height:100%;background:var(--accent)}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:5px}
+.tags span{font-size:10.5px;font-weight:700;border:2px solid var(--ink);border-radius:99px;padding:0 8px;background:var(--paper)}
+.reasons{font-size:11.5px;color:#3a3550;display:flex;flex-direction:column;gap:2px}
+.reasons b{font-weight:900}
+.dim{color:var(--soft);font-weight:700;font-size:11.5px}
+.empty{font-size:11.5px;color:var(--soft);font-weight:700}
+.note{font-size:11.5px;color:#3a3550}
+.note b{font-weight:900}
+.note code{background:var(--paper);border:1.5px solid var(--ink);border-radius:6px;padding:0 5px;font-size:11px}
+.layers{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:9px}
+.layer{border:2px solid var(--ink);border-radius:12px;padding:8px 10px;background:var(--paper)}
+.layer .k{font-family:"DM Mono",monospace;font-size:10px;color:var(--soft);font-weight:700}
+.layer .v{font-size:11.5px;font-weight:700;margin-top:2px}
+</style>
+</head>
+<body>
+
+<h1>GitHub 热门智能巡检</h1>
+<p class="sub">拉一遍冒头的新项目，逐个打分，挑出值得学的写进报告——只留高分，不堆流水账。</p>
+
+<section class="panel">
+  <h2>巡检 <span class="dim"><span class="src snap" id="src">数据来源：待定</span></span></h2>
+  <div>
+    <button class="primary" id="run">开始巡检</button>
+    <button id="again">重新打分</button>
+    <span class="dim" id="stat" style="margin-left:6px"></span>
+  </div>
+  <div class="pipe">
+    <div class="pnode" id="n1"><div class="n">STEP 01</div><div class="t">抓榜单</div><div class="d" id="d1">读热门项目列表</div></div>
+    <div class="pnode" id="n2"><div class="n">STEP 02</div><div class="t">读项目信息</div><div class="d" id="d2">标题 / 描述 / 语言 / Star</div></div>
+    <div class="pnode" id="n3"><div class="n">STEP 03</div><div class="t">逐项打分</div><div class="d" id="d3">0-10 分 + 值不值得学</div></div>
+    <div class="pnode" id="n4"><div class="n">STEP 04</div><div class="t">出报告</div><div class="d" id="d4">只保留高分</div></div>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>报告 <span class="dim" id="rcount"></span></h2>
+  <div id="report"><div class="empty">点上面的「开始巡检」。</div></div>
+</section>
+
+<section class="panel">
+  <h2>评分是怎么打出来的</h2>
+  <div class="note">
+    真机版分两步：先把榜单抓下来（标题 / 描述 / 语言 / Star / 链接），再把每个项目连同它的说明交给大模型，按下面四层提示词打分。这个页面把第二步换成了<b>同一套规则的本地打分器</b>，字段和排序方式一致，所以结果读起来是一样的。
+    <div class="layers">
+      <div class="layer"><div class="k">第一层</div><div class="v">角色定位</div><div class="dim">资深技术项目评估专家</div></div>
+      <div class="layer"><div class="k">第二层</div><div class="v">评估规则</div><div class="dim">流行度 + 描述完整度 + 技术栈</div></div>
+      <div class="layer"><div class="k">第三层</div><div class="v">输出格式</div><div class="dim">纯 JSON 数组，无多余文字</div></div>
+      <div class="layer"><div class="k">第四层</div><div class="v">校验</div><div class="dim">分值区间 / 枚举值是否合法</div></div>
+    </div>
+    <div style="margin-top:10px" class="dim">输出字段：<code>score</code> 0-10 保留一位小数 · <code>verdict</code> 值得 / 不值得 / 视情况而定 · <code>reason</code> 理由 · <code>level</code> 适合什么水平的人学。</div>
+  </div>
+</section>
+
+<script>
+/* 离线快照：实时接口拿不到时用（字段与接口返回一致） */
+var SNAPSHOT = [
+  { title:"astral-sh/uv", desc:"An extremely fast Python package and project manager, written in Rust.", lang:"Rust", stars:58400, topics:["python","packaging","rust"] },
+  { title:"unclecode/crawl4ai", desc:"Open-source LLM Friendly Web Crawler & Scraper. It turns any website into clean markdown for your AI.", lang:"Python", stars:49200, topics:["crawler","llm","markdown"] },
+  { title:"microsoft/markitdown", desc:"Python tool for converting files and office documents to Markdown.", lang:"Python", stars:78600, topics:["markdown","office"] },
+  { title:"infiniflow/ragflow", desc:"RAGFlow is an open-source RAG (Retrieval-Augmented Generation) engine based on deep document understanding.", lang:"TypeScript", stars:67300, topics:["rag","llm","retrieval"] },
+  { title:"ollama/ollama", desc:"Get up and running with OpenAI gpt-oss, DeepSeek-R1, Gemma 3 and other large language models.", lang:"Go", stars:154300, topics:["llm","local"] },
+  { title:"danielmiessler/fabric", desc:"Fabric is an open-source framework for augmenting humans using AI. It provides a modular framework for solving specific problems.", lang:"Go", stars:35700, topics:["ai","prompt","cli"] },
+  { title:"n8n-io/n8n", desc:"Fair-code workflow automation platform with native AI capabilities. Combine visual building with custom code.", lang:"TypeScript", stars:130200, topics:["workflow","automation","ai"] },
+  { title:"maybe-finance/maybe", desc:"The personal finance app for everyone", lang:"Ruby", stars:52100, topics:["finance","app"] },
+  { title:"karpathy/nanoGPT", desc:"The simplest, fastest repository for training/finetuning medium-sized GPTs.", lang:"Python", stars:47100, topics:["gpt","education"] },
+  { title:"harry0703/MoneyPrinterTurbo", desc:"利用AI大模型，一键生成高清短视频 Generate short videos with one click using AI LLM.", lang:"Python", stars:43900, topics:["ai","video"] },
+  { title:"deepseek-ai/DeepSeek-Coder", desc:"DeepSeek Coder: Let the Code Write Itself", lang:"Python", stars:21300, topics:["code","llm"] },
+  { title:"Anjok07/ultimatevocalremovergui", desc:"GUI for a Vocal Remover that uses Deep Learning.", lang:"Python", stars:22500, topics:["audio","deep-learning"] }
+];
+
+function apiUrl(){
+  var since = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
+  return "https://api.github.com/search/repositories?q=created:>" + since + "&sort=stars&order=desc&per_page=12";
+}
+async function fetchLive(){
+  var r = await fetch(apiUrl(), { headers: { "Accept": "application/vnd.github+json" } });
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  var d = await r.json();
+  if (!d.items || !d.items.length) throw new Error("空结果");
+  return d.items.map(function(x){
+    return {
+      title: x.full_name,
+      desc: x.description || "",
+      lang: x.language || "未知",
+      stars: x.stargazers_count || 0,
+      topics: x.topics || [],
+      url: x.html_url,
+      pushed: x.pushed_at
+    };
+  });
+}
+
+/* ---- 本地打分器：按「流行度 + 描述完整度 + 技术栈 + 活跃度」四个维度 ---- */
+var LANG_BONUS = { Python:0.9, TypeScript:0.8, JavaScript:0.8, Go:0.7, Rust:0.7, Java:0.5, "C++":0.5, Ruby:0.3, "C#":0.5, "未知":0 };
+function grade(it){
+  var s = 0, why = [];
+  var d = it.desc || "";
+  if (d.length >= 60){ s += 2.4; why.push("项目说明写得完整，一眼能看懂做什么"); }
+  else if (d.length >= 20){ s += 1.6; why.push("有一句像样的简介"); }
+  else if (d.length > 0){ s += 0.9; why.push("简介太短，得点进去才知道是啥"); }
+  else { s += 0.2; why.push("没写项目说明，判断价值只能靠名字"); }
+
+  var st = it.stars || 0;
+  var ss = st >= 50000 ? 3 : st >= 20000 ? 2.6 : st >= 8000 ? 2.2 : st >= 3000 ? 1.7 : st >= 800 ? 1.2 : 0.7;
+  s += ss;
+  why.push("热度 " + (st >= 1000 ? (st / 1000).toFixed(1) + "k" : st) + " star，一周内涨上来的");
+
+  var lb = LANG_BONUS[it.lang] != null ? LANG_BONUS[it.lang] : 0.4;
+  s += lb;
+  if (lb >= 0.8) why.push(it.lang + " 生态活跃、资料多，学完能直接用");
+  else why.push(it.lang + " 技术栈，学习和迁移成本相对高一些");
+
+  var t = (it.topics || []).length;
+  s += Math.min(1.4, t * 0.35);
+  if (t >= 3) why.push("带 " + t + " 个标签，分类清晰、生态成熟");
+  else if (t === 0) why.push("没打标签，项目还在早期");
+
+  s = Math.min(10, Math.round(s * 10) / 10);
+  var verdict = s >= 7.5 ? "值得" : s >= 5 ? "视情况而定" : "不值得";
+  var level = s >= 8.6 ? "中级开发者" : s >= 7 ? "有一定基础的初学者" : s >= 5.5 ? "跟着教程能啃下来" : "先收藏，观望为主";
+  return { score:s, verdict:verdict, reasons:why, level:level };
+}
+
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function node(i, on, text){ document.getElementById("n" + i).classList.toggle("on", on); if (text) document.getElementById("d" + i).textContent = text; }
+function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+
+function render(items){
+  var graded = items.map(function(it){ var g = grade(it); return Object.assign({}, it, g); })
+    .sort(function(a, b){ return b.score - a.score; });
+  var keep = graded.filter(function(x){ return x.verdict !== "不值得"; });
+  var show = keep.length ? keep : graded.slice(0, 3);
+  document.getElementById("rcount").textContent = "共评估 " + graded.length + " 个 · 入选 " + show.length + " 个";
+  document.getElementById("report").innerHTML = show.map(function(x){
+    var vc = x.verdict === "值得" ? "v-good" : x.verdict === "视情况而定" ? "v-mid" : "v-bad";
+    var title = x.url
+      ? '<a href="' + esc(x.url) + '" target="_blank" rel="noreferrer">' + esc(x.title) + '</a>'
+      : esc(x.title);
+    return '<div class="rep"><div class="r1">'
+      + '<span class="nm">' + title + '</span>'
+      + '<span class="vs ' + vc + '">' + x.verdict + '</span>'
+      + '<span class="sc">' + x.score.toFixed(1) + ' / 10</span></div>'
+      + '<div class="tags"><span>' + esc(x.lang || "未知") + '</span><span>' + (x.stars >= 1000 ? (x.stars / 1000).toFixed(1) + "k" : x.stars) + ' star</span><span>适合：' + esc(x.level) + '</span></div>'
+      + '<div class="track"><i style="width:' + (x.score * 10) + '%"></i></div>'
+      + '<div class="reasons">' + x.reasons.map(function(r){ return '<div>· ' + esc(r) + '</div>'; }).join("") + '</div>'
+      + (x.desc ? '<div class="dim" style="margin-top:5px">' + esc(x.desc) + '</div>' : '')
+      + '</div>';
+  }).join("");
+  return show;
+}
+
+var CACHE = null;
+async function run(){
+  var btn = document.getElementById("run");
+  btn.disabled = true;
+  document.getElementById("report").innerHTML = '<div class="empty">正在跑…</div>';
+  [1,2,3,4].forEach(function(i){ node(i, false); });
+  var items, live = false;
+  node(1, true, "正在请求接口…");
+  await sleep(260);
+  try {
+    items = await fetchLive();
+    live = true;
+    node(1, true, "实时拉到 " + items.length + " 个项目");
+  } catch (e) {
+    items = SNAPSHOT.slice();
+    node(1, true, "接口拿不到（" + e.message + "），用内置快照");
+  }
+  var src = document.getElementById("src");
+  src.textContent = live ? "数据来源：GitHub 实时接口" : "数据来源：内置快照（离线可用）";
+  src.className = "src " + (live ? "live" : "snap");
+  CACHE = items;
+
+  node(2, true, "已读取 " + items.length + " 条项目信息");
+  await sleep(300);
+  node(3, true, "按四个维度逐项打分");
+  await sleep(340);
+  var show = render(items);
+  node(4, true, "报告已生成（" + show.length + " 条）");
+  document.getElementById("stat").textContent = "本次结果：" + (live ? "实时数据" : "快照数据");
+  btn.disabled = false;
+}
+document.getElementById("run").onclick = run;
+document.getElementById("again").onclick = function(){
+  if (CACHE) { render(CACHE); document.getElementById("stat").textContent = "已重新打分"; }
+  else run();
+};
+run();
+</script>
+</body>
+</html>

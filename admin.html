@@ -1,0 +1,1031 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>作品集后台编辑器</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23F4482B'/%3E%3Cpath d='M16 5.5l2.7 7.8 7.8 2.7-7.8 2.7L16 26.5l-2.7-7.8L5.5 16l7.8-2.7z' fill='%23fff'/%3E%3C/svg%3E" />
+<style>
+:root{
+  --paper:#F8F4EC; --ink:#23203a; --line:#23203a;
+  --red:#F4482B; --orange:#FF8A1E; --yellow:#FFC21A; --teal:#10B6A6; --blue:#2E6FE6; --lime:#7CCB1E;
+  --shadow:4px 4px 0 var(--ink);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;background:var(--paper);color:var(--ink);line-height:1.6}
+a{color:inherit}
+/* 顶栏 */
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:12px 20px;background:#fff;border-bottom:2px solid var(--ink);box-shadow:0 4px 0 rgba(35,32,58,.08)}
+.topbar .ttl{font-family:"DM Mono",monospace;font-weight:700;font-size:16px;margin-right:auto;display:flex;align-items:center;gap:10px}
+.topbar .ttl b{background:var(--ink);color:#fff;border-radius:999px;padding:5px 14px}
+.btn{border:2px solid var(--ink);background:#fff;border-radius:12px;padding:9px 16px;font-weight:800;font-size:14px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);transition:.15s}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--ink)}
+.btn.primary{background:var(--ink);color:#fff;box-shadow:3px 3px 0 var(--red)}
+.btn.ghost{box-shadow:3px 3px 0 var(--yellow)}
+/* 布局 */
+.layout{display:grid;grid-template-columns:minmax(360px,520px) 1fr;gap:0;min-height:calc(100vh - 58px)}
+.form-col{padding:22px;overflow:auto;max-height:calc(100vh - 58px);border-right:2px dashed var(--ink)}
+.preview-col{display:flex;flex-direction:column;background:#ece7db}
+.prev-head{display:flex;align-items:center;gap:12px;padding:10px 16px;background:#fff;border-bottom:2px solid var(--ink);font-weight:800}
+.prev-head span{font-family:"DM Mono",monospace;font-size:13px;color:var(--ink);opacity:.7}
+#prev{flex:1;width:100%;border:0;background:#fff}
+/* 卡片区块 */
+.card{background:#fff;border:2px solid var(--ink);border-radius:20px;padding:18px 18px 20px;margin-bottom:20px;box-shadow:var(--shadow)}
+.card>h3{font-size:19px;font-weight:900;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card>h3:before{content:"";width:14px;height:14px;border-radius:4px;background:var(--red);border:2px solid var(--ink)}
+label{display:block;margin-bottom:13px;font-weight:700;font-size:13px;color:var(--ink)}
+label .hint{font-weight:500;color:#8a85a0;font-size:12px;margin-left:6px}
+input[type=text],input[type=url],textarea,select{width:100%;margin-top:6px;padding:10px 12px;border:2px solid var(--ink);border-radius:12px;font:inherit;background:var(--paper);color:var(--ink)}
+textarea{resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+/* 动态子项 */
+.item{border:2px dashed var(--ink);border-radius:14px;padding:12px;margin-bottom:12px;background:#fcfaf4;position:relative}
+.item .dh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-weight:900;font-size:13px;color:var(--red)}
+.mini{font-size:12px;padding:5px 10px;border:2px solid var(--ink);border-radius:9px;background:#fff;cursor:pointer;font-weight:800}
+.mini.del{background:var(--red);color:#fff;border-color:var(--ink)}
+.mini.add{background:var(--yellow);box-shadow:2px 2px 0 var(--ink)}
+.mini:hover{transform:translate(-1px,-1px)}
+.addline{text-align:center;margin-top:4px}
+.lrow{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px}
+.lrow .mini.del{padding:8px 10px}
+/* 提示/草稿条 */
+.fb{position:fixed;inset:0;z-index:50;background:rgba(248,244,236,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;padding:30px}
+.fb.hidden{display:none}
+.fb .box{border:2px solid var(--ink);border-radius:20px;padding:30px;max-width:520px;background:#fff;box-shadow:var(--shadow)}
+.fb h2{font-size:22px;margin-bottom:10px}
+.fb p{color:var(--ink-soft);margin-bottom:16px}
+.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 22px;border-radius:14px;font-weight:800;z-index:80;opacity:0;transition:.3s;pointer-events:none}
+.toast.show{opacity:1}
+/* 生成结果面板 */
+.rep{position:fixed;inset:0;z-index:60;background:rgba(35,32,58,.55);display:flex;align-items:center;justify-content:center;padding:24px}
+.rep.hidden{display:none}
+.rep .box{background:#fff;border:2px solid var(--ink);border-radius:20px;padding:24px;max-width:640px;width:100%;max-height:80vh;overflow:auto;box-shadow:6px 6px 0 var(--ink)}
+.rep h2{font-size:20px;font-weight:900;margin-bottom:6px}
+.rep .big{font-family:"DM Mono",monospace;font-size:13px;color:var(--ink-soft);margin-bottom:14px}
+.rep ul{list-style:none;margin:10px 0 16px}
+.rep li{font-size:13px;padding:6px 0 6px 22px;position:relative;border-bottom:1px dashed #ece7db;word-break:break-all}
+.rep li:before{content:"·";position:absolute;left:6px;font-weight:900}
+.rep li.ok:before{content:"✓";color:#12a56a}
+.rep li.no:before{content:"✕";color:var(--red)}
+.rep .tip{font-size:12px;color:#8a85a0;background:var(--paper);border:2px dashed var(--ink);border-radius:12px;padding:10px 12px;margin-bottom:14px}
+.rep .acts{display:flex;gap:10px;flex-wrap:wrap}
+/* 折叠区 */
+details.sub{border:2px solid var(--ink);border-radius:14px;padding:10px 12px;margin-bottom:12px;background:#fff}
+details.sub>summary{font-weight:900;font-size:13px;cursor:pointer;color:var(--red)}
+details.sub[open]>summary{margin-bottom:10px}
+.badge{display:inline-block;font-size:11px;font-weight:800;border:2px solid var(--ink);border-radius:999px;padding:1px 9px;background:var(--paper);margin-left:6px}
+.badge.dim{opacity:.45;font-weight:600}
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .form-col{max-height:none;border-right:0;border-bottom:2px dashed var(--ink)}
+  .preview-col{height:70vh}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="ttl"><b>CMS</b> 作品集后台编辑器</div>
+  <button class="btn ghost" id="saveDraft">存草稿</button>
+  <button class="btn ghost" id="loadDraft">读草稿</button>
+  <button class="btn" id="reset">重置为模板</button>
+  <button class="btn" id="download">下载 index.html</button>
+  <button class="btn primary" id="genSite">⚡ 生成完整站点</button>
+</header>
+
+<div class="layout">
+  <div class="form-col" id="form"></div>
+  <div class="preview-col">
+    <div class="prev-head"><span>实时预览（右侧即访客看到的成品）</span></div>
+    <iframe id="prev" title="预览"></iframe>
+  </div>
+</div>
+
+<div class="fb hidden" id="fb">
+  <div class="box">
+    <h2>本地模式：请选择 index.html</h2>
+    <p>检测到没在网站环境里打开（比如直接双击文件）。选一下同目录下的 <b>index.html</b>，编辑器就能加载模板开始填内容。部署到 GitHub Pages 后会自动加载，不用这一步。</p>
+    <input type="file" id="filePick" accept=".html" />
+    <p style="margin-top:16px">如果还要「生成完整站点」，再选一次<b>整个项目文件夹</b>（含 <b>works/</b> 和 <b>admin.html</b> 那层），演示页和素材才能一起打包：</p>
+    <input type="file" id="dirPick" webkitdirectory directory multiple />
+  </div>
+</div>
+
+<div class="rep hidden" id="rep"><div class="box" id="repBox"></div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const form = $("#form"), prev = $("#prev"), fb = $("#fb"), toastEl = $("#toast");
+const DRAFT = "portfolio_draft_v1";
+let tplHtml = "", data = null;
+
+/* ---------- 模板加载 ---------- */
+async function init(){
+  try{
+    const r = await fetch("./index.html", {cache:"no-store"});
+    if(!r.ok) throw 0;
+    tplHtml = await r.text();
+  }catch(e){ fb.classList.remove("hidden"); return; }
+  afterTpl();
+}
+function showFallback(){ /* 已用 #fb 元素 */ }
+$("#filePick").addEventListener("change", async e=>{
+  const f = e.target.files[0]; if(!f) return;
+  tplHtml = await f.text();
+  fb.classList.add("hidden");
+  afterTpl();
+});
+
+function afterTpl(){
+  parseData();
+  buildForm();
+  bindGlobal();
+  renderPreview();
+  const d = localStorage.getItem(DRAFT);
+  if(d) toast("检测到本地草稿，点「读草稿」可恢复");
+}
+function parseData(){
+  const m = tplHtml.match(/\/\* === DATA_START === \*\/([\s\S]*?)\/\* === DATA_END === \*\//);
+  if(!m){ alert("模板缺少 DATA 标记，无法编辑"); return; }
+  const src = m[1].replace(/^\s*const\s+content\s*=\s*/,"").replace(/;\s*$/,"").trim();
+  data = (new Function("return "+src))();
+}
+function genHtml(){
+  (data.tiles||[]).forEach(t=>{ if(t.id) t.link = "works/" + t.id + ".html"; });
+  return injectData(tplHtml, data);
+}
+
+/* ---------- 工具 ---------- */
+function esc(s){ return String(s??"").replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function getPath(o,p){ return p.split(".").reduce((a,k)=>a?a[k]:undefined,o); }
+function setPath(o,p,v){ const ks=p.split("."); let c=o; for(let i=0;i<ks.length-1;i++) c=c[ks[i]]; c[ks[ks.length-1]]=v; }
+function opt(list,val){ return list.map(o=>`<option value="${o.v}"${o.v===val?" selected":""}>${o.t}</option>`).join(""); }
+const TILE_COLORS=[{v:"c-red",t:"珊瑚红"},{v:"c-orange",t:"橙"},{v:"c-yellow",t:"黄"},{v:"c-teal",t:"青"},{v:"c-blue",t:"蓝"},{v:"c-lime",t:"绿"},{v:"c-paper",t:"白纸"}];
+const TILE_SIZES=[{v:"normal",t:"正常块"},{v:"wide",t:"大块(占两格)"}];
+const STOP_COLORS=[{v:"var(--red)",t:"红"},{v:"var(--orange)",t:"橙"},{v:"var(--teal)",t:"青"},{v:"var(--blue)",t:"蓝"}];
+const ACCENT_OPTS=[{v:"red",t:"珊瑚红"},{v:"orange",t:"橙"},{v:"yellow",t:"黄"},{v:"teal",t:"青"},{v:"blue",t:"蓝"},{v:"lime",t:"绿"}];
+const STAGE_OPTS=[{v:"",t:"无（用演示页 / 不演示）"},{v:"pet",t:"桌宠迷你养成（内嵌可交互）"}];
+
+/* 可选演示页清单：学生不写代码也能挑一个挂上去 */
+const DEMO_CATALOG=[
+  {v:"",t:"（不挂演示页，只显示说明）"},
+  {v:"demo/voice/index.html",t:"语音助手 · 浏览器里直接对话",lab:"LIVE DEMO · 浏览器里直接说话",btn:"新窗口打开 ↗",h:"min(86vh,780px)",
+   hint:"演示模式：语音识别与朗读由浏览器完成，回答由页面内置的资料检索生成。想让它答得更准，点右上「📚 知识库」上传你自己的 .md / .txt 资料，立刻就能被问到。"},
+  {v:"demo/jump.html",t:"网页小游戏 · 跳一跳（能玩）",lab:"LIVE DEMO · 现在就能玩",btn:"全屏打开 ↗",h:"",hint:"这是实际成品：按住鼠标 / 手指蓄力，松手起跳，落到台上得分。"},
+  {v:"demo/game2048.html",t:"2048 · 棋盘可玩 + AI 接管",lab:"LIVE DEMO · 棋盘能玩，AI 也能自己玩",btn:"新窗口打开 ↗",h:"min(88vh,820px)",
+   hint:"棋盘可以直接用方向键或手指滑动玩。点「AI 接管」，右边会同步显示它的三步：看清棋盘 → 给四个方向打分 → 决定按下哪个键。"},
+  {v:"demo/crypto.html",t:"加密逆向 · 三层加密真算",lab:"LIVE DEMO · 三层加密真算一遍",btn:"新窗口打开 ↗",h:"min(88vh,860px)",
+   hint:"页面里是真的在做运算：两层 AES-128-CBC 走浏览器加密接口，RSA 用自实现的大整数模幂。点「运行校验」会拿固定输入和参考真值逐字节比对。"},
+  {v:"demo/memory.html",t:"本地记忆库 · 真存真检索",lab:"LIVE DEMO · 真存、真检索、真隔离",btn:"新窗口打开 ↗",h:"min(88vh,840px)",
+   hint:"往里加几条记忆、删几条、按项目切着看，然后提问——它会把「意思对但用词不同」的记忆找回来，并显示相似度。"},
+  {v:"demo/plan-api.html",t:"计划后端 · 请求响应日志",lab:"LIVE DEMO · 提交一次，落一次库",btn:"新窗口打开 ↗",h:"min(88vh,860px)",
+   hint:"左边提交计划，右边实时打出这次请求的方法、路径、请求体和响应 JSON，底部还有数据库表视图。"},
+  {v:"demo/trending.html",t:"GitHub 巡检 · 实时采集打分",lab:"LIVE DEMO · 跑一次巡检",btn:"新窗口打开 ↗",h:"min(88vh,860px)",
+   hint:"点「开始巡检」会真的去调 GitHub 接口，把冒头的新项目拉回来（接口拿不到就自动用内置快照），再按四个维度打分。"},
+  {v:"demo/media-pipeline.html",t:"自媒体流水线 · 四步走完",lab:"LIVE DEMO · 完整跑一遍流水线",btn:"新窗口打开 ↗",h:"min(88vh,880px)",
+   hint:"点「运行流水线」，四步依次点亮：抓四个平台的热榜 → 交叉验证挑出唯一选题 → 按固定结构出初稿 → 走发布流程。"},
+  {v:"demo/pack.html",t:"打包工具集 · 四种场景",lab:"LIVE DEMO · 四种打包场景随便试",btn:"新窗口打开 ↗",h:"min(86vh,800px)",
+   hint:"四个场景逐个点「开始打包」，看真实的打包输出、产物体积和各自容易踩的坑。"},
+  {v:"demo/price.html",t:"价格走势图 · 真实监控数据",lab:"LIVE DEMO · 真实监控数据",btn:"全屏打开 ↗",h:"",hint:"10 次真实扫描：从 ¥4299 一路探到 ¥1088。悬停看每次价格，点圆点可跳商品页。"},
+  {v:"demo/cars.html",t:"采集结果表 · 真实抓取数据",lab:"LIVE DEMO · 真实采集结果",btn:"全屏打开 ↗",h:"",hint:"40 台二手车的真实抓取数据：按城市筛选，按价格 / 里程 / 年份排序。"},
+  {v:"demo/comments.html",t:"评论结果 · 真实抓取数据",lab:"LIVE DEMO · 真实采集结果",btn:"全屏打开 ↗",h:"",hint:"20 条实际抓取的评论：支持搜索与关键词热度统计。"},
+];
+
+/* ---------- 表单渲染 ---------- */
+function buildForm(){
+  form.innerHTML = basicHTML() + tilesHTML() + stopsHTML() + skillsHTML() + chatHTML() + socialsHTML() + detailHTML();
+}
+function basicHTML(){
+  return `<section class="card">
+    <h3>① 基本信息</h3>
+    <label>站名 / Logo 文字<input type="text" data-path="name" value="${esc(data.name)}"></label>
+    <label>一句话简介（副标题）<span class="hint">支持换行，用 &lt;br&gt; 手动断行</span><textarea data-path="sub" rows="3">${esc(data.sub)}</textarea></label>
+    <label>联系邮箱<input type="text" data-path="email" value="${esc(data.email)}"></label>
+    <label>GitHub 链接<input type="url" data-path="github" value="${esc(data.github)}"></label>
+    <label>顶部跑马灯关键词<span class="hint">逗号或换行分隔</span><textarea data-path="marquee" rows="2">${esc((data.marquee||[]).join("，"))}</textarea></label>
+  </section>`;
+}
+function tilesHTML(){
+  const items = data.tiles.map((t,i)=>`
+    <div class="item">
+      <div class="dh">作品 #${i+1} <button class="mini del" data-act="delTile:${i}">删除</button></div>
+      <div class="row">
+        <label>序号<input type="text" data-path="tiles.${i}.num" value="${esc(t.num)}"></label>
+        <label>分类<input type="text" data-path="tiles.${i}.cat" value="${esc(t.cat)}"></label>
+      </div>
+      <label>标题<input type="text" data-path="tiles.${i}.title" value="${esc(t.title)}"></label>
+      <label>描述<textarea data-path="tiles.${i}.desc" rows="2">${esc(t.desc)}</textarea></label>
+      <div class="row">
+        <label>色块<select data-path="tiles.${i}.color">${opt(TILE_COLORS,t.color)}</select></label>
+        <label>大小<select data-path="tiles.${i}.size">${opt(TILE_SIZES,t.size)}</select></label>
+      </div>
+      <label>标签<span class="hint">逗号分隔，如 EXE，Python</span><input type="text" data-path="tiles.${i}.tags" value="${esc((t.tags||[]).join("，"))}"></label>
+      <label>跳转链接<span class="hint">作品详情页网址，可留空</span><input type="url" data-path="tiles.${i}.link" value="${esc(t.link||"")}"></label>
+    </div>`).join("");
+  return `<section class="card">
+    <h3>② 作品（便当格）</h3>
+    ${items}
+    <div class="addline"><button class="mini add" data-act="addTile">＋ 添加作品</button></div>
+  </section>`;
+}
+function stopsHTML(){
+  const items = data.stops.map((s,i)=>{
+    const ls = s.lessons.map((l,j)=>`
+      <div class="lrow">
+        <input type="text" data-path="stops.${i}.lessons.${j}.0" value="${esc(l[0])}" placeholder="内容">
+        <input type="text" data-path="stops.${i}.lessons.${j}.1" value="${esc(l[1])}" placeholder="标签">
+        <button class="mini del" data-act="delLesson:${i}:${j}">✕</button>
+      </div>`).join("");
+    return `<div class="item">
+      <div class="dh">阶段 #${i+1} <button class="mini del" data-act="delStop:${i}">删除</button></div>
+      <div class="row">
+        <label>站点序号<input type="text" data-path="stops.${i}.mark" value="${esc(s.mark)}"></label>
+        <label>颜色<select data-path="stops.${i}.color">${opt(STOP_COLORS,s.color)}</select></label>
+      </div>
+      <label>阶段名称<input type="text" data-path="stops.${i}.name" value="${esc(s.name)}"></label>
+      <label>小标签<input type="text" data-path="stops.${i}.tag" value="${esc(s.tag)}"></label>
+      <label>碎片（每个 = 一行内容 + 标签）</label>
+      ${ls}
+      <div class="addline"><button class="mini add" data-act="addLesson:${i}">＋ 加碎片</button></div>
+    </div>`;
+  }).join("");
+  return `<section class="card">
+    <h3>③ 成长轨迹（节点）</h3>
+    ${items}
+    <div class="addline"><button class="mini add" data-act="addStop">＋ 添加阶段</button></div>
+  </section>`;
+}
+function skillsHTML(){
+  const items = data.skills.map((s,i)=>`
+    <div class="item">
+      <div class="dh">技能 #${i+1} <button class="mini del" data-act="delSkill:${i}">删除</button></div>
+      <div class="row">
+        <label>名称<input type="text" data-path="skills.${i}.name" value="${esc(s.name)}"></label>
+        <label>熟练度（1-5 盏灯）<select data-path="skills.${i}.level">${[1,2,3,4,5].map(n=>`<option value="${n}"${n===s.level?" selected":""}>${n} 灯</option>`).join("")}</select></label>
+      </div>
+    </div>`).join("");
+  return `<section class="card">
+    <h3>④ 技能（贴纸墙）</h3>
+    ${items}
+    <div class="addline"><button class="mini add" data-act="addSkill">＋ 添加技能</button></div>
+  </section>`;
+}
+function chatHTML(){
+  const items = data.chat.map((c,i)=>`
+    <div class="item">
+      <div class="dh">对话 #${i+1} <button class="mini del" data-act="delChat:${i}">删除</button></div>
+      <label>提问方文字<input type="text" data-path="chat.${i}.who" value="${esc(c.who)}"></label>
+      <label class="row" style="display:flex;align-items:center;gap:8px;font-weight:700">
+        <input type="checkbox" data-path="chat.${i}.me" ${c.me?"checked":""} style="width:auto;margin:0"> 这句是「我」说的（右侧深色气泡）
+      </label>
+      <label>内容<textarea data-path="chat.${i}.text" rows="2">${esc(c.text)}</textarea></label>
+    </div>`).join("");
+  return `<section class="card">
+    <h3>⑤ 关于（对话气泡）</h3>
+    ${items}
+    <div class="addline"><button class="mini add" data-act="addChat">＋ 添加对话</button></div>
+    </section>`;
+}
+function socialsHTML(){
+  const items = data.socials.map((s,i)=>`
+    <div class="item">
+      <div class="dh">平台 #${i+1} <button class="mini del" data-act="delSocial:${i}">删除</button></div>
+      <div class="row">
+        <label>平台名称<input type="text" data-path="socials.${i}.name" value="${esc(s.name)}"></label>
+        <label>链接<input type="url" data-path="socials.${i}.url" value="${esc(s.url||"")}"></label>
+      </div>
+    </div>`).join("");
+  return `<section class="card">
+    <h3>⑥ 社交平台（联系区）</h3>
+    <p style="font-size:12px;color:#8a85a0;margin-bottom:10px">GitHub 在「基本信息」里填，这里加微信 / CSDN / B站等其它平台，可任意增删。链接留空则按钮不跳转。</p>
+    ${items}
+    <div class="addline"><button class="mini add" data-act="addSocial">＋ 添加平台</button></div>
+  </section>`;
+}
+
+function detailHTML(){
+  const items = data.tiles.map((t,i)=>{
+    const d = t.detail;
+    const demo = (d && d.demo) || null;
+    const extra = (d && d.extra) || null;
+    const demoOpts = DEMO_CATALOG.map(o=>`<option value="${o.v}"${demo&&demo.src===o.v?" selected":""}>${esc(o.t)}</option>`).join("");
+    return `
+    <details class="sub">
+      <summary>${esc(t.title||"未命名")} <span class="badge">#${i+1}</span>${demo?'<span class="badge">有演示</span>':(d&&d.stage?'<span class="badge">内嵌演示</span>':'<span class="badge dim">无演示</span>')}</summary>
+      ${d ? `
+      <div class="row">
+        <label>文件标识 id<span class="hint">生成 works/&lt;id&gt;.html</span><input type="text" data-path="tiles.${i}.id" value="${esc(t.id||"")}"></label>
+        <label>强调色<select data-path="tiles.${i}.detail.accent">${opt(ACCENT_OPTS,d.accent)}</select></label>
+      </div>
+      <label>详情页副标题<input type="text" data-path="tiles.${i}.detail.lead" value="${esc(d.lead||"")}"></label>
+      <label>背景（关于段落开头）<textarea data-path="tiles.${i}.detail.bg" rows="2">${esc(d.bg||"")}</textarea></label>
+      <label>做了什么<span class="hint">一行一条</span><textarea data-path="tiles.${i}.detail.did" rows="3">${esc((d.did||[]).join("\n"))}</textarea></label>
+      <label>亮点标签<span class="hint">一行一条</span><textarea data-path="tiles.${i}.detail.highlights" rows="3">${esc((d.highlights||[]).join("\n"))}</textarea></label>
+      <label>内嵌演示页<select data-demo="${i}">${demoOpts}</select></label>
+      ${demo ? `
+      <label>演示区标题<input type="text" data-path="tiles.${i}.detail.demo.lab" value="${esc(demo.lab||"")}"></label>
+      <label>演示区说明<textarea data-path="tiles.${i}.detail.demo.hint" rows="2">${esc(demo.hint||"")}</textarea></label>
+      <label>框架高度<span class="hint">留空用默认，如 min(88vh,860px)</span><input type="text" data-path="tiles.${i}.detail.demo.h" value="${esc(demo.h||"")}"></label>
+      `: ""}
+      <label>特殊演示<select data-stage="${i}">${opt(STAGE_OPTS,d.stage||"")}</select></label>
+      ${extra ? `
+      <div class="item">
+        <div class="dh">额外说明卡 <button class="mini del" data-act="delExtra:${i}">删除</button></div>
+        <label>标题<input type="text" data-path="tiles.${i}.detail.extra.title" value="${esc(extra.title||"")}"></label>
+        <label>引言<textarea data-path="tiles.${i}.detail.extra.note" rows="2">${esc(extra.note||"")}</textarea></label>
+        <label>条目<span class="hint">一行一条</span><textarea data-path="tiles.${i}.detail.extra.items" rows="3">${esc((extra.items||[]).join("\n"))}</textarea></label>
+        <label>底部标签<span class="hint">一行一条</span><textarea data-path="tiles.${i}.detail.extra.badges" rows="2">${esc((extra.badges||[]).join("\n"))}</textarea></label>
+      </div>` : `<div class="addline"><button class="mini add" data-act="addExtra:${i}">＋ 加一张说明卡</button></div>`}
+      ` : `
+      <p style="font-size:13px;color:#8a85a0;margin-bottom:8px">这个作品还没有详情页内容。</p>
+      <div class="addline"><button class="mini add" data-act="initDetail:${i}">＋ 为它创建详情页内容</button></div>`}
+    </details>`;
+  }).join("");
+  return `<section class="card">
+    <h3>⑦ 作品详情页（点开作品后看到的页面）</h3>
+    <p style="font-size:12px;color:#8a85a0;margin-bottom:12px">每个作品可以配一个独立详情页，还能挑一个演示页挂上去。点右上「⚡ 生成完整站点」，会把这些页面连同首页、演示页、素材一起打成压缩包。</p>
+    ${items}
+  </section>`;
+}
+
+/* ---------- 交互绑定 ---------- */
+function bindGlobal(){
+  form.addEventListener("input", onInput);
+  form.addEventListener("click", onClick);
+  $("#download").addEventListener("click", download);
+  $("#genSite").addEventListener("click", genSite);
+  $("#saveDraft").addEventListener("click", ()=>{ localStorage.setItem(DRAFT, JSON.stringify(data)); toast("已存草稿到本机"); });
+  $("#loadDraft").addEventListener("click", ()=>{
+    const d = localStorage.getItem(DRAFT);
+    if(!d){ toast("没有草稿"); return; }
+    data = JSON.parse(d); buildForm(); renderPreview(); toast("已读取草稿");
+  });
+  $("#reset").addEventListener("click", ()=>{
+    if(!confirm("重置为模板默认内容？当前编辑会丢失（草稿不受影响）。")) return;
+    parseData(); buildForm(); renderPreview(); toast("已重置");
+  });
+}
+function onInput(e){
+  const el = e.target;
+  const demoIdx = el.dataset.demo, stageIdx = el.dataset.stage;
+  if(demoIdx!=null){
+    const t = data.tiles[+demoIdx]; if(!t.detail) return;
+    const v = el.value;
+    if(!v) t.detail.demo = null;
+    else { const c = DEMO_CATALOG.find(o=>o.v===v);
+      t.detail.demo = {src:v, lab:c.lab, btn:c.btn, hint:c.hint, h:c.h||""}; }
+    buildForm(); renderPreview(); return;
+  }
+  if(stageIdx!=null){
+    const t = data.tiles[+stageIdx]; if(!t.detail) return;
+    t.detail.stage = el.value || null;
+    buildForm(); renderPreview(); return;
+  }
+  const el2 = e.target, p = el2.dataset.path; if(!p) return;
+  let v = el2.value;
+  if(p==="marquee"){ data.marquee = v.split(/[，,\n]/).map(s=>s.trim()).filter(Boolean); }
+  else if(p.endsWith(".tags")){ v = v.split(/[，,\n]/).map(s=>s.trim()).filter(Boolean); setPath(data,p,v); }
+  else if(p.endsWith(".did") || p.endsWith(".highlights") || p.endsWith(".items") || p.endsWith(".badges")){
+    v = v.split("\n").map(s=>s.trim()).filter(Boolean); setPath(data,p,v);
+  }
+  else if(p.endsWith(".id")){ v = String(v).replace(/[^a-zA-Z0-9\-_]/g,"").toLowerCase(); setPath(data,p,v); }
+  else if(p.endsWith(".level")){ setPath(data,p, +v); }
+  else if(p.endsWith(".me")){ setPath(data,p, el.checked); }
+  else setPath(data,p,v);
+  schedulePreview();
+}
+function onClick(e){
+  const b = e.target.closest("[data-act]"); if(!b) return;
+  const [act,a,b2] = b.dataset.act.split(":");
+  if(act==="addTile") data.tiles.push({id:"work-"+(data.tiles.length+1),cat:"应用开发",size:"normal",color:"c-red",num:String(data.tiles.length+1).padStart(2,"0"),title:"新作品",desc:"一句话简介",tags:[],link:"",
+    detail:{accent:"red",lead:"一句话说清这个作品做了什么。",bg:"",did:["做了什么"],highlights:["亮点"],demo:null,stage:null,extra:null}});
+  else if(act==="delTile") data.tiles.splice(+a,1);
+  else if(act==="initDetail"){ const t=data.tiles[+a];
+    t.id = t.id || ("work-"+(data.tiles.length));
+    if(!t.detail) t.detail={accent:"red",lead:"一句话说清这个作品做了什么。",bg:"",did:["做了什么"],highlights:["亮点"],demo:null,stage:null,extra:null}; }
+  else if(act==="addExtra"){ const t=data.tiles[+a]; if(t.detail) t.detail.extra={title:"补充说明",note:"",items:["条目"],badges:["标签"]}; }
+  else if(act==="delExtra"){ const t=data.tiles[+a]; if(t.detail) t.detail.extra=null; }
+  else if(act==="addStop") data.stops.push({mark:String(data.stops.length+1),name:"新阶段",color:"var(--red)",tag:"标签",lessons:[["内容","标签"]]});
+  else if(act==="delStop") data.stops.splice(+a,1);
+  else if(act==="addLesson") data.stops[+a].lessons.push(["新内容","新标签"]);
+  else if(act==="delLesson") data.stops[+a].lessons.splice(+b2,1);
+  else if(act==="addSkill") data.skills.push({name:"新技能",level:3});
+  else if(act==="delSkill") data.skills.splice(+a,1);
+  else if(act==="addChat") data.chat.push({who:"Q · 新问答",me:false,text:"内容"});
+  else if(act==="delChat") data.chat.splice(+a,1);
+  else if(act==="addSocial") data.socials.push({name:"新平台",url:""});
+  else if(act==="delSocial") data.socials.splice(+a,1);
+  buildForm(); renderPreview();
+}
+let timer;
+function schedulePreview(){ clearTimeout(timer); timer=setTimeout(renderPreview,250); }
+function renderPreview(){ prev.srcdoc = genHtml(); }
+
+function download(){
+  const html = genHtml();
+  const blob = new Blob([html], {type:"text/html;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "index.html";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast("已下载 index.html，覆盖到仓库即可");
+}
+let tT;
+function toast(msg){ toastEl.textContent=msg; toastEl.classList.add("show"); clearTimeout(tT); tT=setTimeout(()=>toastEl.classList.remove("show"),2200); }
+
+/* === CORE_START === */
+/* ------------------------------------------------------------------
+   生成核心：数据注入 + 详情页渲染 + ZIP 打包
+   纯函数、不碰 DOM —— 后台和脚本（build-works.js / 自测）共用同一份逻辑。
+   ------------------------------------------------------------------ */
+const ACCENT_HEX = { red:'#F4482B', orange:'#FF8A1E', yellow:'#FFC21A', teal:'#10B6A6', blue:'#2E6FE6', lime:'#7CCB1E' };
+
+function hEsc(s){ return String(s==null?"":s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* 桌宠素材：狗 / 企鹅没有 normal 与 hungry，统一用 happy 兜底（否则切换物种会裂图） */
+const PET_SPECIES = {
+  cat:     { base:'normal', hungry:'hungry', label:'🐱 猫' },
+  dog:     { base:'happy',  hungry:'happy',  label:'🐶 狗' },
+  penguin: { base:'happy',  hungry:'happy',  label:'🐧 企鹅' }
+};
+const PET_FILES = ['cat_normal','cat_happy','cat_hungry','cat_angry','cat_sleep','cat_blink','cat_open',
+  'dog_happy','dog_open','dog_blink','dog_sleep',
+  'penguin_happy','penguin_open','penguin_blink','penguin_sleep'].map(n=>'works/assets/pet/'+n+'.png');
+
+/* ---------- 数据注入首页 ---------- */
+function injectData(tpl, c){
+  const block = "/* === DATA_START === */\nconst content = " + JSON.stringify(c,null,2) + ";\n/* === DATA_END === */";
+  return tpl.replace(/\/\* === DATA_START === \*\/[\s\S]*?\/\* === DATA_END === \*\//, block);
+}
+
+/* ---------- 桌宠迷你养成（真实 sprite 素材） ---------- */
+function petStageHtml(){
+  return `
+  <section class="stage">
+    <div class="stage-head"><span class="lab">LIVE DEMO · 网页版迷你养成（素材取自实际程序）</span><span class="lab" id="lv">Lv.3 · EXP 0/60</span></div>
+    <div class="desk" id="desk">
+      <div class="bubble" id="bubble" hidden></div>
+      <img id="pet" class="pet" src="assets/pet/cat_normal.png" alt="桌宠" title="摸摸它">
+      <div id="fx"></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="lab"><span>饱食度</span><span id="v-hunger">0</span></div><div class="track"><div class="fill" id="b-hunger"></div></div></div>
+      <div class="stat"><div class="lab"><span>心情</span><span id="v-mood">0</span></div><div class="track"><div class="fill" id="b-mood"></div></div></div>
+      <div class="stat"><div class="lab"><span>精力</span><span id="v-energy">0</span></div><div class="track"><div class="fill" id="b-energy"></div></div></div>
+      <div class="stat"><div class="lab"><span>亲密度</span><span id="v-close">0</span></div><div class="track"><div class="fill" id="b-close"></div></div></div>
+    </div>
+    <div class="acts">
+      <button class="pbtn on" data-sp="cat">🐱 猫</button>
+      <button class="pbtn" data-sp="dog">🐶 狗</button>
+      <button class="pbtn" data-sp="penguin">🐧 企鹅</button>
+      <span class="sep"></span>
+      <button class="pbtn" data-act="feed">🍖 喂食</button>
+      <button class="pbtn" data-act="play">🎾 玩耍</button>
+      <button class="pbtn" data-act="sleep">💤 睡觉</button>
+      <button class="pbtn" data-act="touch">✨ 摸摸</button>
+      <button class="pbtn" data-act="walk">🚶 散步</button>
+    </div>
+  </section>
+  <script>
+  var PETSP = ${JSON.stringify(PET_SPECIES)};
+  var S = { sp:'cat', hunger:72, mood:82, energy:64, close:46, exp:0, sleeping:false, walking:false };
+  var NAME = { cat:'🐱 猫', dog:'🐶 狗', penguin:'🐧 企鹅' };
+  var PHRASES = {
+    cat:   ['喵~ 一起加油鸭','喵呜？','小鱼干！我要小鱼干！','（尾巴摇了摇）','（蹭了蹭你的手）'],
+    dog:   ['汪！你回来啦！','汪汪！出去玩好不好','（疯狂摇尾巴）','汪？','（歪头看你）'],
+    penguin:['（摇摆摇摆）','咕咕？','鱼！鱼！鱼！','（滑了一跤）','（拍拍翅膀）']
+  };
+  var PLAY_PHRASES = { cat:'再来一次！', dog:'汪汪！最开心了！', penguin:'（开心地转圈）' };
+  var pet = document.getElementById('pet'), bubble = document.getElementById('bubble'),
+      fx = document.getElementById('fx'), desk = document.getElementById('desk');
+  function clamp(v){ return Math.max(0, Math.min(100, v)); }
+  function setImg(n){ pet.src = 'assets/pet/' + S.sp + '_' + n + '.png'; }
+  function refreshImg(){
+    if (S.sleeping) return setImg('sleep');
+    if (S.walking)  return setImg(PETSP[S.sp].base);
+    setImg(S.mood < 35 ? PETSP[S.sp].hungry : PETSP[S.sp].base);
+  }
+  function tempImg(n, ms){ setImg(n); setTimeout(refreshImg, ms); }
+  function say(t){
+    bubble.textContent = t; bubble.hidden = false;
+    clearTimeout(say._t); say._t = setTimeout(function(){ bubble.hidden = true; }, 2200);
+  }
+  function rand(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+  function pop(emo){
+    var s = document.createElement('span');
+    s.className = 'emo'; s.textContent = emo;
+    s.style.left = (30 + Math.random() * 40) + '%';
+    fx.appendChild(s); setTimeout(function(){ s.remove(); }, 1200);
+  }
+  function gain(n){ S.exp += n; }
+  function render(){
+    [['hunger','b-hunger','v-hunger'],['mood','b-mood','v-mood'],['energy','b-energy','v-energy'],['close','b-close','v-close']]
+      .forEach(function(x){
+        document.getElementById(x[1]).style.width = S[x[0]] + '%';
+        document.getElementById(x[2]).textContent = S[x[0]];
+      });
+    var lv = 3 + Math.floor(S.exp / 60);
+    document.getElementById('lv').textContent = 'Lv.' + lv + ' · EXP ' + (S.exp % 60) + '/60';
+  }
+  var ACTS = {
+    feed:  function(){ tempImg('open', 1500); S.hunger = clamp(S.hunger + 18); S.mood = clamp(S.mood + 4); gain(8); pop('🍖'); say('好吃！'); },
+    play:  function(){ tempImg('happy', 1800); S.mood = clamp(S.mood + 15); S.hunger = clamp(S.hunger - 6); S.energy = clamp(S.energy - 8); gain(10); pop('💖'); say(PLAY_PHRASES[S.sp]); },
+    sleep: function(){ S.sleeping = true; refreshImg(); say('Zzz…'); pop('💤'); setTimeout(function(){ S.sleeping = false; S.energy = 100; refreshImg(); say('睡饱啦！'); }, 2600); gain(6); },
+    touch: function(){ tempImg('blink', 700); setTimeout(function(){ tempImg('happy', 900); }, 700); S.close = clamp(S.close + 8); S.mood = clamp(S.mood + 6); gain(6); pop('✨'); say(rand(PHRASES[S.sp])); },
+    walk:  function(){ S.walking = !S.walking; pet.classList.toggle('walk', S.walking); refreshImg(); say(S.walking ? '（出门溜达）' : '（回家啦）'); }
+  };
+  document.querySelectorAll('[data-sp]').forEach(function(b){
+    b.onclick = function(){
+      S.sp = b.dataset.sp;
+      document.querySelectorAll('[data-sp]').forEach(function(x){ x.classList.remove('on'); });
+      b.classList.add('on');
+      refreshImg(); say('嗨，我是' + NAME[S.sp].split(' ')[1] + '！');
+    };
+  });
+  document.querySelectorAll('[data-act]').forEach(function(b){
+    b.onclick = function(){ ACTS[b.dataset.act](); render(); };
+  });
+  pet.onclick = function(){ ACTS.touch(); render(); };
+  setInterval(function(){ S.hunger = clamp(S.hunger - 1); S.energy = clamp(S.energy - 1); refreshImg(); render(); }, 6000);
+  render();
+  <\/script>`;
+}
+
+/* ---------- iframe 演示舞台 ---------- */
+function demoStageHtml(d){
+  const h = d.h ? ` style="height:${hEsc(d.h)}"` : '';
+  return `
+  <section class="stage">
+    <div class="stage-head"><span class="lab">${hEsc(d.lab||"LIVE DEMO")}</span><a class="open-btn" href="${hEsc(d.src)}" target="_blank" rel="noreferrer">${hEsc(d.btn||"新窗口打开 ↗")}</a></div>
+    <iframe class="stage-frame"${h} src="${hEsc(d.src)}" loading="lazy" title="${hEsc(d.lab||"demo")}"></iframe>
+    <p class="hint">${hEsc(d.hint||"")}</p>
+  </section>`;
+}
+
+function detailExtraHtml(x){
+  if(!x) return '';
+  const items = (x.items||[]);
+  const badges = (x.badges||[]);
+  return `
+  <section class="card">
+    <h2>${hEsc(x.title||"补充说明")}</h2>
+    ${x.note?`<p class="bgline">${hEsc(x.note)}</p>`:''}
+    ${items.length?`<ul>${items.map(i=>`<li>${hEsc(i)}</li>`).join('')}</ul>`:''}
+    ${badges.length?`<div class="hls">${badges.map(b=>`<span>${hEsc(b)}</span>`).join('')}</div>`:''}
+  </section>`;
+}
+
+/* ---------- 单个作品详情页 ---------- */
+function detailPage(w, siteName){
+  const hex = ACCENT_HEX[w.accent] || ACCENT_HEX.red;
+  const dark = w.accent === 'yellow';
+  const stage = w.stage === 'pet' ? petStageHtml() : (w.demo ? demoStageHtml(w.demo) : '');
+  const tags = (w.tags||[]).map(t=>`<span>${hEsc(t)}</span>`).join('');
+  const did = (w.did||[]).map(x=>`<li>${hEsc(x)}</li>`).join('');
+  const hls = (w.highlights||[]).map(x=>`<span>${hEsc(x)}</span>`).join('');
+  const brand = hEsc(siteName || '我的作品集');
+  return `<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>${hEsc(w.title)} · 作品集</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23F4482B'/%3E%3Cpath d='M16 5.5l2.7 7.8 7.8 2.7-7.8 2.7L16 26.5l-2.7-7.8L5.5 16l7.8-2.7z' fill='%23fff'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet" />
+<style>
+:root{--paper:#F8F4EC;--ink:#23203a;--ink-soft:#6b6580;--accent:${hex}}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;background:var(--paper);color:var(--ink);line-height:1.8;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+
+.bar{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:12px clamp(16px,4vw,40px);background:rgba(248,244,236,.86);backdrop-filter:blur(12px);border-bottom:2px solid var(--ink)}
+.back{font-weight:900;font-size:15px;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:8px 18px;box-shadow:3px 3px 0 var(--ink);transition:.2s}
+.back:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink)}
+.brand{font-family:"DM Mono",monospace;font-weight:500;font-size:14px}
+
+.dhero{margin:64px auto 0;max-width:980px;padding:clamp(26px,4.5vw,48px) clamp(22px,5vw,56px) clamp(24px,4vw,42px);border-radius:0 0 40px 40px;background:var(--accent);color:#fff;border:2px solid var(--ink);border-top:0;position:relative;overflow:hidden}
+.dhero.dark{color:var(--ink)}
+.dhero::after{content:"";position:absolute;right:-40px;top:-40px;width:170px;height:170px;border-radius:50%;background:rgba(255,255,255,.22)}
+.dhero .dcat{position:relative;display:inline-block;font-size:12px;font-weight:900;background:#fff;color:var(--ink);border:2px solid var(--ink);border-radius:999px;padding:3px 14px;transform:rotate(-2deg)}
+.dhero h1{position:relative;font-size:clamp(28px,4.6vw,46px);font-weight:900;line-height:1.1;letter-spacing:-1px;margin:12px 0 6px}
+.dhero .lead{position:relative;font-size:clamp(15px,2vw,18px);opacity:.95;max-width:36em}
+.dtags{position:relative;display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.dtags span{font-size:12px;font-weight:700;border:2px solid currentColor;border-radius:999px;padding:2px 12px}
+
+main{max-width:980px;margin:0 auto;padding:0 clamp(16px,4vw,40px)}
+.stage{background:#fff;border:2px solid var(--ink);border-radius:28px;padding:clamp(12px,2.4vw,20px);margin-top:26px;box-shadow:6px 6px 0 rgba(35,32,58,.12)}
+.stage-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding:2px 6px 12px}
+.stage-head .lab{font-family:"DM Mono",monospace;font-size:12px;letter-spacing:1px;color:var(--ink-soft)}
+.open-btn{font:inherit;font-size:13px;font-weight:900;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:5px 16px;box-shadow:3px 3px 0 var(--ink);transition:.15s;display:inline-block}
+.open-btn:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink)}
+.stage-frame{width:100%;height:min(76vh,680px);border:2px solid var(--ink);border-radius:18px;background:#fff;display:block}
+@media(max-width:640px){.stage-frame{height:80vh}}
+.hint{padding:10px 6px 2px;font-size:13px;color:var(--ink-soft);font-weight:700}
+
+.card{background:#fff;border:2px solid var(--ink);border-radius:28px;padding:clamp(24px,3.6vw,40px);margin-top:26px;box-shadow:6px 6px 0 rgba(35,32,58,.12)}
+.card h2{font-size:clamp(19px,2.6vw,25px);font-weight:900;margin-bottom:14px;display:flex;align-items:center;gap:12px}
+.card h2::before{content:"";width:14px;height:14px;border-radius:5px;background:var(--accent);border:2px solid var(--ink);display:inline-block;flex:none}
+.card .bgline{color:var(--ink-soft);font-size:15px;margin-bottom:12px}
+.card ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.card li{padding-left:30px;position:relative;color:#3a3550;font-size:15px}
+.card li::before{content:"✦";position:absolute;left:4px;top:0;color:var(--accent);font-weight:900}
+.card code{font-family:"DM Mono",monospace;font-size:13px;background:var(--paper);border:2px solid var(--ink);border-radius:8px;padding:1px 8px;white-space:nowrap}
+.card b{font-weight:900}
+.hls{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;padding-top:16px;border-top:2px dashed #eee7da}
+.hls span{font-size:13px;font-weight:700;background:var(--paper);border:2px solid var(--ink);border-radius:999px;padding:4px 14px}
+.hls span::before{content:"✦ ";color:var(--accent)}
+
+/* ---- 桌宠迷你养成 ---- */
+.desk{position:relative;height:min(46vh,340px);border:2px solid var(--ink);border-radius:18px;overflow:hidden;background:linear-gradient(180deg,#cfeaff 0%,#efe6ff 55%,#ffe8cf 100%)}
+.desk::after{content:"";position:absolute;left:0;right:0;bottom:0;height:44px;background:rgba(35,32,58,.08);border-top:2px solid rgba(35,32,58,.15)}
+.pet{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);height:150px;cursor:pointer;filter:drop-shadow(0 8px 0 rgba(35,32,58,.10));animation:bob 2.6s ease-in-out infinite;z-index:2}
+.pet.walk{animation:bob 2.6s ease-in-out infinite, stroll 9s linear infinite alternate}
+@keyframes bob{0%,100%{margin-bottom:0}50%{margin-bottom:10px}}
+@keyframes stroll{0%{left:18%}100%{left:82%}}
+.bubble{position:absolute;left:50%;bottom:208px;transform:translateX(-50%);background:#fff;border:2px solid var(--ink);border-radius:16px;padding:7px 16px;font-weight:700;font-size:14px;box-shadow:3px 3px 0 rgba(35,32,58,.15);white-space:nowrap;z-index:3}
+.bubble::after{content:"";position:absolute;left:50%;bottom:-9px;transform:translateX(-50%) rotate(45deg);width:12px;height:12px;background:#fff;border-right:2px solid var(--ink);border-bottom:2px solid var(--ink)}
+.emo{position:absolute;bottom:190px;font-size:22px;animation:rise 1.2s ease-out forwards;pointer-events:none;z-index:3}
+@keyframes rise{to{transform:translateY(-70px);opacity:0}}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+.stat{background:var(--paper);border:2px solid var(--ink);border-radius:14px;padding:8px 12px}
+.stat .lab{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:5px}
+.track{height:10px;border:2px solid var(--ink);border-radius:99px;background:#fff;overflow:hidden}
+.fill{height:100%;background:var(--accent);transition:width .4s}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.acts .sep{width:2px;height:22px;background:#eee7da;margin:0 4px}
+.pbtn{font:inherit;font-size:13px;font-weight:700;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:5px 14px;cursor:pointer;transition:.15s}
+.pbtn:hover{transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--ink)}
+.pbtn.on{background:var(--accent);color:#fff}
+
+footer{max-width:980px;margin:44px auto 64px;padding:26px clamp(16px,4vw,40px) 0;border-top:2px solid var(--ink);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;color:var(--ink-soft);font-size:14px;font-weight:500}
+footer a{font-weight:900;color:var(--ink);border-bottom:2px solid var(--accent)}
+</style>
+</head>
+<body>
+<nav class="bar">
+  <a class="back" href="../index.html">← 返回作品集</a>
+  <span class="brand">${brand} · 作品集</span>
+</nav>
+
+<header class="dhero${dark?' dark':''}">
+  <span class="dcat">${hEsc(w.cat)}</span>
+  <h1>${hEsc(w.title)}</h1>
+  <p class="lead">${hEsc(w.lead)}</p>
+  <div class="dtags">${tags}</div>
+</header>
+
+<main>
+${stage}
+  <section class="card">
+    <h2>关于这个项目</h2>
+    ${w.bg?`<p class="bgline">${hEsc(w.bg)}</p>`:''}
+    ${did?`<ul>${did}</ul>`:''}
+    ${hls?`<div class="hls">${hls}</div>`:''}
+  </section>
+${detailExtraHtml(w.extra)}</main>
+
+<footer>
+  <span>${brand} · 个人作品集</span>
+  <a href="../index.html">← 回到全部作品</a>
+</footer>
+</body>
+</html>
+`;
+}
+
+/* ---------- 从 content 出所有详情页 ---------- */
+function detailPages(c){
+  return (c.tiles||[]).filter(t=>t && t.detail && t.id).map(t=>({
+    path: 'works/' + t.id + '.html',
+    text: detailPage({
+      slug: t.id, cat: t.cat, accent: (t.detail.accent||'red'), title: t.title,
+      lead: t.detail.lead||'', tags: t.tags||[], bg: t.detail.bg||'',
+      did: t.detail.did||[], highlights: t.detail.highlights||[],
+      demo: t.detail.demo||null, stage: t.detail.stage||null, extra: t.detail.extra||null
+    }, c.name||'我的作品集')
+  }));
+}
+
+/* ---------- ZIP 打包（store 模式，无依赖，浏览器/Node 通用） ---------- */
+let CRC_T = null;
+function crcTable(){
+  if(CRC_T) return CRC_T;
+  CRC_T = new Uint32Array(256);
+  for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c = (c&1) ? (0xEDB88320 ^ (c>>>1)) : (c>>>1); CRC_T[n]=c>>>0; }
+  return CRC_T;
+}
+function crc32(u8){
+  const t = crcTable(); let c = 0xFFFFFFFF;
+  for(let i=0;i<u8.length;i++) c = t[(c ^ u8[i]) & 0xFF] ^ (c>>>8);
+  return (c ^ 0xFFFFFFFF)>>>0;
+}
+function buildZip(files){
+  const enc = new TextEncoder();
+  const parts = [], central = [];
+  let offset = 0;
+  const d = new Date();
+  const dosTime = (((d.getHours()<<11) | (d.getMinutes()<<5) | (d.getSeconds()>>1)) & 0xFFFF);
+  const dosDate = ((((d.getFullYear()-1980)<<9) | ((d.getMonth()+1)<<5) | d.getDate()) & 0xFFFF);
+  files.forEach(f=>{
+    const nameB = enc.encode(f.path);
+    const data = f.data;
+    const crc = crc32(data);
+    const lh = new Uint8Array(30 + nameB.length);
+    const lv = new DataView(lh.buffer);
+    lv.setUint32(0, 0x04034b50, true);
+    lv.setUint16(4, 20, true);
+    lv.setUint16(6, 0x0800, true);
+    lv.setUint16(8, 0, true);
+    lv.setUint16(10, dosTime, true);
+    lv.setUint16(12, dosDate, true);
+    lv.setUint32(14, crc, true);
+    lv.setUint32(18, data.length, true);
+    lv.setUint32(22, data.length, true);
+    lv.setUint16(26, nameB.length, true);
+    lv.setUint16(28, 0, true);
+    lh.set(nameB, 30);
+    parts.push(lh, data);
+
+    const ch = new Uint8Array(46 + nameB.length);
+    const cv = new DataView(ch.buffer);
+    cv.setUint32(0, 0x02014b50, true);
+    cv.setUint16(4, 20, true);
+    cv.setUint16(6, 20, true);
+    cv.setUint16(8, 0x0800, true);
+    cv.setUint16(10, 0, true);
+    cv.setUint16(12, dosTime, true);
+    cv.setUint16(14, dosDate, true);
+    cv.setUint32(16, crc, true);
+    cv.setUint32(20, data.length, true);
+    cv.setUint32(24, data.length, true);
+    cv.setUint16(28, nameB.length, true);
+    cv.setUint16(30, 0, true);
+    cv.setUint16(32, 0, true);
+    cv.setUint16(34, 0, true);
+    cv.setUint16(36, 0, true);
+    cv.setUint32(38, 0, true);
+    cv.setUint32(42, offset, true);
+    ch.set(nameB, 46);
+    central.push(ch);
+
+    offset += lh.length + data.length;
+  });
+  const cenSize = central.reduce((a,b)=>a+b.length, 0);
+  const eocd = new Uint8Array(22);
+  const ev = new DataView(eocd.buffer);
+  ev.setUint32(0, 0x06054b50, true);
+  ev.setUint16(8, files.length, true);
+  ev.setUint16(10, files.length, true);
+  ev.setUint32(12, cenSize, true);
+  ev.setUint32(16, offset, true);
+  const all = parts.concat(central, [eocd]);
+  const total = all.reduce((a,b)=>a+b.length, 0);
+  const out = new Uint8Array(total);
+  let p = 0; all.forEach(c=>{ out.set(c, p); p += c.length; });
+  return out;
+}
+
+/* ---------- 需要一起打包的既有文件（演示页 + 素材） ---------- */
+function neededFiles(c){
+  const set = new Set();
+  (c.tiles||[]).forEach(t=>{
+    const d = t.detail; if(!d) return;
+    if(d.demo && d.demo.src){
+      set.add('works/' + d.demo.src);
+      if(d.demo.src.indexOf('demo/voice/') === 0){
+        set.add('works/demo/voice/app.js');
+        set.add('works/demo/voice/style.css');
+      }
+    }
+    if(d.stage === 'pet') PET_FILES.forEach(f=>set.add(f));
+  });
+  return [...set];
+}
+/* ---------- 生成完整站点 ---------- */
+const LOCAL_FILES = {};
+const OPTIONAL = ['admin.html', 'works/demo/voice/index.html'];
+
+async function readOne(path){
+  const f = LOCAL_FILES[path];
+  if(f) return new Uint8Array(await f.arrayBuffer());
+  try{
+    const r = await fetch("./" + path, {cache:"no-store"});
+    if(!r.ok) return null;
+    return new Uint8Array(await r.arrayBuffer());
+  }catch(e){ return null; }
+}
+
+function deployReadme(c){
+  const n = (c.tiles||[]).length;
+  return [
+"# 个人作品集 · 部署说明",
+"",
+"照下面 3 步做，就能得到一个能在浏览器直接打开的网址。",
+"",
+"---",
+"",
+"## 第 0 步 · 先解压（别直接把 zip 传上去）",
+"",
+"GitHub 只是存文件，**不会帮你解压**。如果直接把 `portfolio-site.zip` 传上去，",
+"网址打开会是一个下载链接，而不是网页。所以先在电脑上解压。",
+"",
+"解压后会得到一个文件夹，里面是：",
+"",
+"| 文件 / 文件夹 | 是什么 |",
+"|---|---|",
+"| `index.html` | 首页 |",
+"| `works/` | 所有作品详情页、演示页、图片 |",
+"| `admin.html` | 可视化后台（以后改内容用） |",
+"| `.nojekyll` | 给 GitHub 看的标记文件，别删、别改名 |",
+"| `README.md` | 就是本文，传不传都行 |",
+"",
+"> **要传的是文件夹「里面的内容和文件夹」，不是那个文件夹本身。**",
+"> 传错的表现：网址能打开，但显示 404 或一片空白。",
+"",
+"---",
+"",
+"## 第 1 步 · 建仓库 + 上传文件",
+"",
+"1. 登录 github.com → 右上角 `+` → **New repository**",
+"",
+"2. 仓库名二选一（这个决定了你最后的网址长什么样）：",
+"",
+"   - 想要 `https://你的用户名.github.io` 这种最简网址",
+"     → 仓库名必须精确写成：**你的用户名.github.io**",
+"   - 想起个别的名字（比如 `my-portfolio`）",
+"     → 网址会变成：`https://你的用户名.github.io/my-portfolio/`",
+"",
+"3. 可见性选 **Public**（免费账号用 Public 最省事）；",
+"   「Add a README file」**不要勾**",
+"",
+"4. 点 **Create repository**",
+"",
+"5. 进到仓库页面 → **Add file** → **Upload files**",
+"   - 打开你解压出来的那个文件夹，`Ctrl+A` 全选里面的所有文件和文件夹",
+"     （`index.html`、`works`、`admin.html`、`.nojekyll` …… 一起选中）",
+"   - 一起拖进网页中间的上传区",
+"   - 等进度条走完 → 点 **Commit changes**",
+"",
+"---",
+"",
+"## 第 2 步 · 打开 Pages 开关",
+"",
+"仓库页面 → **Settings** → 左侧栏 **Pages**",
+"",
+"| 选项 | 选什么 |",
+"|---|---|",
+"| Source | Deploy from a branch |",
+"| Branch | `main` |",
+"| 文件夹 | `/(root)` |",
+"",
+"点 **Save**，等 1~2 分钟，然后打开你的网址：",
+"",
+"- 仓库名叫 `你的用户名.github.io` → `https://你的用户名.github.io`",
+"- 其它仓库名 → `https://你的用户名.github.io/仓库名/`",
+"",
+"**自检**：首页能打开 → 点任意作品卡片能进详情页 → 详情页里的演示能直接玩/能看",
+"→ 就算部署成功。",
+"",
+"---",
+"",
+"## 以后改内容（完全不用碰代码）",
+"",
+"1. 打开你的网址后面加 `/admin.html`",
+"   （例如 `https://xxx.github.io/admin.html`）",
+"2. 在左边表单里改文字、加作品，右边会实时预览",
+"3. 点右上角「⚡ 生成完整站点」，会下载一个新的 `portfolio-site.zip`",
+"4. 解压后，把里面的 `index.html` 和 `works` 文件夹拖回仓库覆盖 → Commit",
+"",
+"> 只改了文字的话，只覆盖 `index.html` 就够，会快一些。",
+"> 如果改了演示页或图片，就要整包覆盖。",
+"",
+"---",
+"",
+"## 常见问题",
+"",
+"**Q：为什么必须先解压？**",
+"A：GitHub 不会自动解压。传 zip 上去，网址里只有一个下载链接。",
+"",
+"**Q：`.nojekyll` 是干嘛的，能删吗？**",
+"A：不能删、不能改名。GitHub 默认会跑一遍 Jekyll 处理网页文件，",
+"加上这个空文件后它会原样输出，避免某些文件名被忽略、导致页面或图片 404。",
+"",
+"**Q：打开后样式正常，但图片或演示一片空白？**",
+"A：多半是只传了 `index.html`，没传 `works` 文件夹。回仓库确认 `works` 在里面。",
+"",
+"**Q：能放多大的东西？**",
+"A：本站点只有几 MB，GitHub 免费额度完全够。但别把 raw 素材、venv、exe",
+"这类大文件传上去（单个文件超过 100MB 会被拒绝）。",
+"",
+"**Q：网址谁能看？**",
+"A：Public 仓库的 Pages 网址是公开的，任何人拿到链接都能访问。",
+"别在页面里放隐私信息（手机号、住址、内部资料等）。",
+"",
+"**Q：改完多久生效？**",
+"A：Commit 之后一般几十秒到 1 分钟。浏览器记得强制刷新（`Ctrl+F5`）。",
+"",
+"---",
+"",
+"**进阶**：如果你电脑上装了 Git，也可以用命令行上传，以后改完 push 一次就更新：",
+"",
+"```bash",
+"git add . && git commit -m update && git push",
+"```",
+"",
+"---",
+"",
+"作品数量：**" + n + "** 个（每个作品都有自己的独立详情页，演示页随包一起打包，详情页里可直接交互）"
+  ].join("\n");
+}
+/* === CORE_END === */
+
+$("#dirPick").addEventListener("change", e=>{
+  const fs = [...e.target.files];
+  if(!fs.length) return;
+  let n = 0;
+  fs.forEach(f=>{
+    const rel = (f.webkitRelativePath || f.name).split("/").slice(1).join("/");
+    if(rel){ LOCAL_FILES[rel] = f; n++; }
+  });
+  toast("已载入 " + n + " 个文件，可以点「生成完整站点」了");
+});
+
+async function genSite(){
+  if(!data || !tplHtml){ alert("还没加载到 index.html 模板。请先在页面上选择一次 index.html（本地模式下会弹选择框），再点生成。"); return; }
+  const btn = $("#genSite");
+  btn.disabled = true; btn.textContent = "正在生成…";
+  try{
+    data.tiles.forEach(t=>{ if(t.id) t.link = "works/" + t.id + ".html"; });
+
+    const enc = new TextEncoder();
+    const pages = detailPages(data);
+    const need = neededFiles(data);
+
+    const files = [], missing = [], okList = [];
+    files.push({path:"index.html", data: enc.encode(genHtml())});
+    okList.push("index.html（首页）");
+    pages.forEach(p=>{ files.push({path:p.path, data: enc.encode(p.text)}); okList.push(p.path); });
+
+    for(const p of need){
+      const buf = await readOne(p);
+      if(buf){ files.push({path:p, data:buf}); okList.push(p); }
+      else missing.push(p);
+    }
+    const buf = await readOne("admin.html");
+    if(buf){ files.push({path:"admin.html", data:buf}); okList.push("admin.html（后台，可在线上继续编辑）"); }
+
+    // .nojekyll —— 让 GitHub Pages 原样输出文件（不加的话带下划线/点号的文件会被忽略，导致 404）
+    files.push({path:".nojekyll", data: enc.encode("")});
+    okList.push(".nojekyll（GitHub Pages 必需，别删）");
+
+    files.push({path:"README.md", data: enc.encode(deployReadme(data))});
+
+    const zip = buildZip(files);
+    const blob = new Blob([zip], {type:"application/zip"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "portfolio-site.zip"; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+
+    showReport({files, okList, missing, bytes: zip.length, pages: pages.length});
+  }catch(err){
+    alert("生成失败：" + err.message);
+  }finally{
+    btn.disabled = false; btn.textContent = "⚡ 生成完整站点";
+  }
+}
+
+function showReport(r){
+  const mb = (r.bytes/1048576).toFixed(2);
+  const missingHtml = r.missing.length
+    ? `<li class="no">缺少 ${r.missing.length} 个文件（这些演示页/素材没抓到，先确认你在网站环境下打开，或先选一次项目文件夹）：
+        <br>${r.missing.slice(0,12).map(x=>hEsc(x)).join("<br>")}${r.missing.length>12?"<br>…":""}</li>`
+    : `<li class="ok">演示页与素材全部打包齐全</li>`;
+  $("#repBox").innerHTML = `
+    <h2>✅ 已生成 portfolio-site.zip</h2>
+    <div class="big">${r.okList.length} 个文件 · ${mb} MB · 其中详情页 ${r.pages} 个</div>
+    <div class="tip">下一步：<b>先解压</b>（别把 zip 直接传上去）→ 打开解压出来的文件夹，全选里面的文件和文件夹 → 一起拖进 GitHub 仓库根目录 → Commit。仓库 Settings → Pages 选 main / (root)，一两分钟后就能访问。包里的 <b>README.md</b> 写了完整步骤（GitHub 仓库首页会自动显示它）。以后想改内容，打开 <b>站点地址/admin.html</b> 再生成一次即可。</div>
+    <ul>
+      ${missingHtml}
+      ${r.okList.map(x=>`<li class="ok">${hEsc(x)}</li>`).join("")}
+    </ul>
+    <div class="acts">
+      <button class="btn primary" id="repClose">知道了</button>
+      <button class="btn" id="repHome">只下载 index.html</button>
+    </div>`;
+  $("#rep").classList.remove("hidden");
+  $("#repClose").onclick = ()=>$("#rep").classList.add("hidden");
+  $("#repHome").onclick = ()=>{ $("#rep").classList.add("hidden"); download(); };
+}
+
+init();
+</script>
+</body>
+</html>

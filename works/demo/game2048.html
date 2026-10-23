@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>自动玩 2048</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23F4482B'/%3E%3Cpath d='M16 5.5l2.7 7.8 7.8 2.7-7.8 2.7L16 26.5l-2.7-7.8L5.5 16l7.8-2.7z' fill='%23fff'/%3E%3C/svg%3E" />
+<style>
+:root{--paper:#F8F4EC;--ink:#23203a;--soft:#6b6580;--accent:#10B6A6}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;background:var(--paper);color:var(--ink);line-height:1.6;padding:18px clamp(12px,3vw,24px) 26px}
+.mono,pre{font-family:"DM Mono",Consolas,monospace}
+h1{font-size:clamp(18px,2.8vw,23px);font-weight:900}
+.sub{color:var(--soft);font-size:12.5px;font-weight:700;margin:3px 0 14px}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+@media(max-width:760px){.wrap{grid-template-columns:1fr}}
+.panel{background:#fff;border:2px solid var(--ink);border-radius:18px;padding:14px;box-shadow:4px 4px 0 rgba(35,32,58,.13)}
+.boardwrap{display:flex;flex-direction:column;gap:11px}
+.hud{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.score{background:#fff;border:2px solid var(--ink);border-radius:12px;padding:5px 14px;box-shadow:3px 3px 0 rgba(35,32,58,.13)}
+.score b{display:block;font-size:19px;font-weight:900;line-height:1.15}
+.score span{font-size:10.5px;color:var(--soft);font-weight:700}
+.board{background:#2b2740;border:2px solid var(--ink);border-radius:16px;padding:9px;display:grid;grid-template-columns:repeat(4,1fr);gap:9px;touch-action:none}
+.slot{position:relative;aspect-ratio:1/1;border-radius:10px;background:rgba(255,255,255,.09);display:flex}
+.tile{flex:1;display:flex;align-items:center;justify-content:center;font-weight:900;border-radius:10px;border:2px solid var(--ink);color:#23203a;transition:.12s;font-size:clamp(15px,4.2vw,26px)}
+.tile.pop{animation:pop .16s ease-out}
+@keyframes pop{0%{transform:scale(.82)}100%{transform:scale(1)}}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;font-weight:900;font-size:12.5px;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:6px 15px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);transition:.14s}
+button:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink)}
+button.primary{background:var(--ink);color:#fff}
+button.on{background:var(--accent);color:#fff}
+.tip{font-size:11.5px;color:var(--soft);font-weight:700}
+.trace{display:flex;flex-direction:column;gap:9px}
+.sec{border:2px solid var(--ink);border-radius:13px;padding:10px 12px;background:var(--paper)}
+.sec .h{font-family:"DM Mono",monospace;font-size:10.5px;font-weight:700;color:var(--soft);letter-spacing:.8px;margin-bottom:7px}
+pre.grid{font-size:13px;line-height:1.5;letter-spacing:1px}
+.cand{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:12px;padding:4px 7px;border-radius:8px;font-weight:700}
+.cand .nm{font-family:"DM Mono",monospace;width:44px}
+.cand .bar{height:9px;background:#fff;border:2px solid var(--ink);border-radius:99px;overflow:hidden}
+.cand .bar i{display:block;height:100%;background:#c9c4dd}
+.cand.best{background:#DFF6C8}
+.cand.best .bar i{background:#7CCB1E}
+.cand.dead{opacity:.42}
+.pick{font-size:13px;font-weight:900}
+.pick code{font-family:"DM Mono",monospace;background:#fff;border:2px solid var(--ink);border-radius:7px;padding:1px 8px}
+.dim{color:var(--soft);font-weight:700;font-size:11.5px}
+</style>
+</head>
+<body>
+
+<h1>自动玩 2048</h1>
+<p class="sub">棋盘可以在网页里直接玩；打开「AI 接管」，它会自己看盘、算一步、动手滑。</p>
+
+<div class="wrap">
+  <div class="boardwrap">
+    <div class="hud">
+      <div class="score"><b id="score">0</b><span>得分</span></div>
+      <div class="score"><b id="best">0</b><span>最高分</span></div>
+      <div class="score"><b id="maxblk">0</b><span>最大方块</span></div>
+    </div>
+    <div class="board" id="board"></div>
+    <div class="btns">
+      <button class="primary" id="ng">新游戏</button>
+      <button id="ai">AI 接管</button>
+      <button id="step">AI 走一步</button>
+      <button id="undo">悔一步</button>
+    </div>
+    <div class="tip">键盘方向键 / WASD，或者直接在棋盘上滑动。</div>
+  </div>
+
+  <div class="panel trace">
+    <div class="sec">
+      <div class="h">① 感知 · 当前棋盘</div>
+      <pre class="grid" id="perc">—</pre>
+    </div>
+    <div class="sec">
+      <div class="h" style="display:flex;justify-content:space-between;gap:10px"><span>② 决策 · 四个方向的分数</span><span id="meta"></span></div>
+      <div id="cands" class="dim">还没开始算。</div>
+    </div>
+    <div class="sec">
+      <div class="h">③ 操作 · 发回游戏的按键</div>
+      <div class="pick" id="act">—</div>
+      <div class="dim" id="actsub">（真机版这一步是给游戏容器发方向键）</div>
+    </div>
+  </div>
+</div>
+
+<script>
+var N = 4, TOP = 4;
+var COLORS = {0:"#2b2740",2:"#FFF3C4",4:"#FFE08A",8:"#FFC21A",16:"#FF8A1E",32:"#F4482B",64:"#E02A5B",128:"#2E6FE6",256:"#10B6A6",512:"#7CCB1E",1024:"#9B5DE5",2048:"#23203a"};
+function colorOf(v){ return COLORS[v] || "#23203a"; }
+function textColor(v){ return v >= 128 ? "#fff" : "#23203a"; }
+
+var B, score = 0, best = +(localStorage.getItem("g2048best") || 0), aiOn = false, timer = null, undoStack = [], pops = [];
+
+function emptyBoard(){ return [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]; }
+function clone(b){ return b.map(function(r){ return r.slice(); }); }
+function logv(v){ return v ? Math.log2(v) : 0; }
+
+function addRandom(b){
+  var spots = [];
+  for (var i = 0; i < N; i++) for (var j = 0; j < N; j++) if (!b[i][j]) spots.push([i,j]);
+  if (!spots.length) return null;
+  var p = spots[Math.floor(Math.random() * spots.length)];
+  b[p[0]][p[1]] = Math.random() < 0.9 ? 2 : 4;
+  return p[0] + "-" + p[1];
+}
+function transpose(b){
+  var r = emptyBoard();
+  for (var i = 0; i < N; i++) for (var j = 0; j < N; j++) r[j][i] = b[i][j];
+  return r;
+}
+function flip(b){ return b.map(function(r){ return r.slice().reverse(); }); }
+function slideLeft(b){
+  var nb = clone(b), gained = 0, moved = false;
+  for (var i = 0; i < N; i++){
+    var row = nb[i].filter(function(x){ return x; });
+    var out = [];
+    for (var k = 0; k < row.length; k++){
+      if (row[k] === row[k+1]){ out.push(row[k] * 2); gained += row[k] * 2; k++; }
+      else out.push(row[k]);
+    }
+    while (out.length < N) out.push(0);
+    nb[i] = out;
+    if (out.join(",") !== b[i].join(",")) moved = true;
+  }
+  return { b:nb, gained:gained, moved:moved };
+}
+function move(b, dir){
+  var s;
+  if (dir === "left") return slideLeft(b);
+  if (dir === "right"){ s = slideLeft(flip(b)); return { b:flip(s.b), gained:s.gained, moved:s.moved }; }
+  if (dir === "up")   { s = slideLeft(transpose(b)); return { b:transpose(s.b), gained:s.gained, moved:s.moved }; }
+  s = slideLeft(flip(transpose(b)));
+  return { b:transpose(flip(s.b)), gained:s.gained, moved:s.moved };
+}
+
+/* ---- 局面评估：空格 + 平滑度 + 单调性 + 最大块靠角 ---- */
+function evaluate(b){
+  var empty = 0, smooth = 0, max = 0, mi = 0, mj = 0;
+  for (var i = 0; i < N; i++) for (var j = 0; j < N; j++){
+    if (!b[i][j]){ empty++; continue; }
+    if (b[i][j] > max){ max = b[i][j]; mi = i; mj = j; }
+  }
+  for (var i2 = 0; i2 < N; i2++) for (var j2 = 0; j2 < N; j2++){
+    var v = b[i2][j2];
+    if (!v) continue;
+    if (j2 < N - 1 && b[i2][j2+1]) smooth -= Math.abs(logv(v) - logv(b[i2][j2+1]));
+    if (i2 < N - 1 && b[i2+1][j2]) smooth -= Math.abs(logv(v) - logv(b[i2+1][j2]));
+  }
+  function mono(get){
+    var t = [0, 0];
+    for (var i = 0; i < N; i++){
+      var cur = 0, nxt = 1;
+      while (nxt < N){
+        while (nxt < N && get(i, nxt) === 0) nxt++;
+        if (nxt >= N) break;
+        var a = get(i, cur), c = get(i, nxt);
+        if (a > c) t[0] += logv(c) - logv(a); else if (c > a) t[1] += logv(a) - logv(c);
+        cur = nxt; nxt++;
+      }
+    }
+    return Math.max(t[0], t[1]);
+  }
+  var m = mono(function(i,j){ return b[i][j]; }) + mono(function(i,j){ return b[j][i]; });
+  var corner = (mi === 0 || mi === N-1) && (mj === 0 || mj === N-1) ? 1 : 0;
+  return empty * 270 + smooth * 22 + m * 70 + corner * 180 + logv(max) * 30;
+}
+
+var DIRS = ["up", "down", "left", "right"];
+var SEARCH_DEPTH = 3;
+
+function empties(b){
+  var s = [];
+  for (var i = 0; i < N; i++) for (var j = 0; j < N; j++) if (!b[i][j]) s.push([i, j]);
+  return s;
+}
+/* 期望搜索：玩家层取最大；机会层按「90% 出 2 / 10% 出 4」对所有空位取期望 */
+function search(b, depth, isPlayer){
+  if (depth === 0) return evaluate(b);
+  if (isPlayer){
+    var bestSc = -Infinity;
+    for (var k = 0; k < DIRS.length; k++){
+      var r = move(b, DIRS[k]);
+      if (!r.moved) continue;
+      var v = search(r.b, depth - 1, false) + r.gained * 2;
+      if (v > bestSc) bestSc = v;
+    }
+    return bestSc === -Infinity ? -1e9 : bestSc;
+  }
+  var sp = empties(b);
+  if (!sp.length) return evaluate(b);
+  var sum = 0;
+  for (var s = 0; s < sp.length; s++){
+    var a = clone(b); a[sp[s][0]][sp[s][1]] = 2;
+    var c = clone(b); c[sp[s][0]][sp[s][1]] = 4;
+    sum += 0.9 * search(a, depth - 1, true) + 0.1 * search(c, depth - 1, true);
+  }
+  return sum / sp.length;
+}
+function rank(b){
+  return DIRS.map(function(d){
+    var r = move(b, d);
+    if (!r.moved) return { dir:d, legal:false, gained:0, score:-Infinity };
+    return { dir:d, legal:true, gained:r.gained, score: search(r.b, SEARCH_DEPTH - 1, false) + r.gained * 2 };
+  });
+}
+function pick(b){
+  var t0 = performance.now();
+  var all = rank(b);
+  var ms = performance.now() - t0;
+  var legal = all.filter(function(x){ return x.legal; });
+  if (!legal.length) return null;
+  legal.sort(function(a, c){ return c.score - a.score; });
+  return { best:legal[0], all:all, ms:ms };
+}
+function hasMove(b){
+  for (var i = 0; i < N; i++) for (var j = 0; j < N; j++){
+    if (!b[i][j]) return true;
+    if (j < N-1 && b[i][j] === b[i][j+1]) return true;
+    if (i < N-1 && b[i][j] === b[i+1][j]) return true;
+  }
+  return false;
+}
+
+/* ---- 渲染 ---- */
+function render(newPos){
+  var html = "";
+  for (var i = 0; i < N; i++) for (var j = 0; j < N; j++){
+    var v = B[i][j];
+    var pop = (newPos === (i + "-" + j)) ? " pop" : "";
+    html += '<div class="slot">'
+      + (v ? '<div class="tile' + pop + '" style="background:' + colorOf(v) + ';color:' + textColor(v) + '">' + v + '</div>' : '')
+      + '</div>';
+  }
+  document.getElementById("board").innerHTML = html;
+  document.getElementById("score").textContent = score;
+  document.getElementById("best").textContent = best;
+  var mx = 0;
+  for (var a = 0; a < N; a++) for (var b2 = 0; b2 < N; b2++) mx = Math.max(mx, B[a][b2]);
+  document.getElementById("maxblk").textContent = mx;
+  document.getElementById("perc").textContent = B.map(function(r){
+    return r.map(function(v){ return String(v || 0).padStart(4, " "); }).join(" ");
+  }).join("\n");
+}
+function paintDecision(info){
+  var box = document.getElementById("cands");
+  var meta = document.getElementById("meta");
+  if (!info){
+    box.innerHTML = '<span class="dim">四个方向都动不了了。</span>';
+    document.getElementById("act").textContent = "游戏结束";
+    meta.textContent = "";
+    return;
+  }
+  meta.textContent = "往前看 " + SEARCH_DEPTH + " 层 · " + info.ms.toFixed(1) + " ms";
+  var maxAbs = Math.max.apply(null, info.all.filter(function(x){ return x.legal; }).map(function(x){ return Math.abs(x.score); }).concat([1]));
+  box.innerHTML = info.all.map(function(x){
+    var w = x.legal ? Math.max(6, Math.round(Math.abs(x.score) / maxAbs * 100)) : 0;
+    return '<div class="cand' + (x.dir === info.best.dir ? " best" : "") + (x.legal ? "" : " dead") + '">'
+      + '<span class="nm">' + x.dir.toUpperCase() + '</span>'
+      + '<span class="bar"><i style="width:' + w + '%"></i></span>'
+      + '<span>' + (x.legal ? Math.round(x.score) : "不能动") + '</span></div>';
+  }).join("");
+  var KEY = { up:"ArrowUp", down:"ArrowDown", left:"ArrowLeft", right:"ArrowRight" };
+  document.getElementById("act").innerHTML = 'key_down(<code>' + KEY[info.best.dir] + '</code>)'
+    + ' <span class="dim">← ' + info.best.dir + '（合并得 +' + info.best.gained + '）</span>';
+}
+
+/* ---- 动作 ---- */
+function doMove(dir, fromAI){
+  var r = move(B, dir);
+  if (!r.moved) return false;
+  undoStack.push({ b:clone(B), s:score });
+  if (undoStack.length > 40) undoStack.shift();
+  B = r.b;
+  score += r.gained;
+  if (score > best){ best = score; localStorage.setItem("g2048best", String(best)); }
+  var np = addRandom(B);
+  render(np);
+  return true;
+}
+function newGame(){
+  B = emptyBoard(); score = 0; undoStack = [];
+  addRandom(B); addRandom(B);
+  render();
+  document.getElementById("cands").innerHTML = '<span class="dim">还没开始算。</span>';
+  document.getElementById("act").textContent = "—";
+}
+function aiStep(){
+  var info = pick(B);
+  if (!info){ paintDecision(null); stopAI(); return; }
+  paintDecision(info);
+  doMove(info.best.dir, true);
+}
+function startAI(){
+  aiOn = true;
+  document.getElementById("ai").classList.add("on");
+  document.getElementById("ai").textContent = "AI 运行中…点击暂停";
+  clearInterval(timer);
+  timer = setInterval(function(){ if (!aiOn) return; aiStep(); }, 340);
+}
+function stopAI(){
+  aiOn = false;
+  clearInterval(timer);
+  document.getElementById("ai").classList.remove("on");
+  document.getElementById("ai").textContent = "AI 接管";
+}
+
+document.getElementById("ng").onclick = function(){ stopAI(); newGame(); };
+document.getElementById("step").onclick = function(){ stopAI(); aiStep(); };
+document.getElementById("ai").onclick = function(){ aiOn ? stopAI() : startAI(); };
+document.getElementById("undo").onclick = function(){
+  stopAI();
+  var h = undoStack.pop();
+  if (!h) return;
+  B = h.b; score = h.s; render();
+};
+document.addEventListener("keydown", function(e){
+  var m = { ArrowUp:"up", ArrowDown:"down", ArrowLeft:"left", ArrowRight:"right", w:"up", s:"down", a:"left", d:"right" };
+  var dir = m[e.key];
+  if (!dir) return;
+  e.preventDefault();
+  stopAI();
+  doMove(dir);
+});
+var sx = 0, sy = 0;
+var board = document.getElementById("board");
+board.addEventListener("touchstart", function(e){ sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive:true });
+board.addEventListener("touchend", function(e){
+  var dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+  if (Math.abs(dx) < 26 && Math.abs(dy) < 26) return;
+  stopAI();
+  doMove(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up"));
+});
+newGame();
+</script>
+</body>
+</html>

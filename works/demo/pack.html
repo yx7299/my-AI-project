@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Python 打包成 exe</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23F4482B'/%3E%3Cpath d='M16 5.5l2.7 7.8 7.8 2.7-7.8 2.7L16 26.5l-2.7-7.8L5.5 16l7.8-2.7z' fill='%23fff'/%3E%3C/svg%3E" />
+<style>
+:root{--paper:#F8F4EC;--ink:#23203a;--soft:#6b6580;--accent:#FFC21A}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;background:var(--paper);color:var(--ink);line-height:1.65;padding:18px clamp(12px,3vw,24px) 26px}
+.mono,code,.tty{font-family:"DM Mono",Consolas,monospace}
+h1{font-size:clamp(18px,2.8vw,23px);font-weight:900}
+.sub{color:var(--soft);font-size:12.5px;font-weight:700;margin:3px 0 14px}
+.panel{background:#fff;border:2px solid var(--ink);border-radius:18px;padding:14px;box-shadow:4px 4px 0 rgba(35,32,58,.13);margin-bottom:12px}
+h2{font-size:13px;font-weight:900;margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+h2::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--accent);border:2px solid var(--ink);flex:none}
+h2 .dim{margin-left:auto;font-size:11px;color:var(--soft);font-weight:700}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{font:inherit;font-weight:900;font-size:12.5px;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:6px 15px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);transition:.14s}
+.tab:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink)}
+.tab.on{background:var(--ink);color:#fff}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
+@media(max-width:860px){.grid2{grid-template-columns:1fr}}
+.q{font-size:12.5px;color:#3a3550;border-left:5px solid var(--accent);padding-left:11px;margin-bottom:10px}
+.cmd{background:var(--paper);border:2px solid var(--ink);border-radius:10px;padding:9px 11px;font-size:11.5px;word-break:break-all;line-height:1.7}
+.cmd .d{color:var(--soft)}
+button.primary{font:inherit;font-weight:900;font-size:12.5px;background:var(--ink);color:#fff;border:2px solid var(--ink);border-radius:999px;padding:6px 16px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);transition:.14s}
+button.primary:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink)}
+button.primary:disabled{opacity:.5;cursor:default;transform:none}
+.tty{border:2px solid var(--ink);border-radius:12px;background:#26233a;color:#ddd8f2;padding:10px 12px;font-size:11px;line-height:1.75;height:250px;overflow:auto;white-space:pre-wrap;word-break:break-all}
+.tty .ok{color:#8ef0d8}
+.tty .warn{color:#ffd166}
+.tty .dimc{color:#9d95bd}
+.tty .hi{color:#ffb3d1}
+.exe{border:2px solid var(--ink);border-radius:12px;padding:10px 12px;background:#DFF6C8;margin-top:10px;display:flex;gap:11px;align-items:center}
+.exe .ic{font-size:24px;flex:none}
+.exe .nm{font-size:13.5px;font-weight:900;word-break:break-all}
+.exe .sz{font-family:"DM Mono",monospace;font-weight:700;font-size:15px;flex:none;margin-left:auto}
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+th,td{border:2px solid var(--ink);padding:5px 9px;text-align:left}
+th{background:var(--paper);font-weight:900}
+td.n{font-family:"DM Mono",monospace;font-size:11px}
+.note{font-size:11.5px;color:#3a3550}
+.note b{font-weight:900}
+.note code{background:var(--paper);border:1.5px solid var(--ink);border-radius:6px;padding:0 5px;font-size:11px}
+.dim{color:var(--soft);font-weight:700;font-size:11.5px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+</style>
+</head>
+<body>
+
+<h1>Python 打包成 exe</h1>
+<p class="sub">自己写的工具，发给不会装环境的人就用不了。打包是最后一道坎——四种场景，逐个跑通。</p>
+
+<section class="panel">
+  <h2>选一个场景</h2>
+  <div class="tabs" id="tabs"></div>
+</section>
+
+<div class="grid2">
+  <section class="panel">
+    <h2 id="ctitle">场景</h2>
+    <div class="q" id="cq"></div>
+    <div class="dim" style="margin-bottom:5px">打包命令</div>
+    <div class="cmd mono" id="ccmd"></div>
+    <div class="row"><button class="primary" id="build">开始打包</button><span class="dim" id="bstat"></span></div>
+    <div id="result"></div>
+  </section>
+
+  <section class="panel">
+    <h2>打包输出 <span class="dim">PyInstaller</span></h2>
+    <div class="tty" id="tty"><span class="dimc">选一个场景，点「开始打包」。</span></div>
+  </section>
+</div>
+
+<section class="panel">
+  <h2>四种场景速查</h2>
+  <table>
+    <tr><th>场景</th><th>要加的参数</th><th>产物</th><th>容易踩的坑</th></tr>
+    <tr><td>单文件</td><td class="n">--onefile</td><td class="n">7.0 MB</td><td>最小也有 7MB 左右，因为 Python 运行时被打进去了</td></tr>
+    <tr><td>带静态素材</td><td class="n">--add-data "fish.png;."</td><td class="n">9.9 MB</td><td>代码里要用 <code>sys._MEIPASS</code> 取路径，写死相对路径会找不到图</td></tr>
+    <tr><td>第三方库（requests）</td><td class="n">--onefile</td><td class="n">16 MB</td><td>大部分常用库会被自动分析出来</td></tr>
+    <tr><td>第三方库（pandas）</td><td class="n">--collect-all pandas</td><td class="n">204 MB</td><td>不显式收全就报 <code>ModuleNotFoundError</code>，收全了包巨大</td></tr>
+    <tr><td>多文件项目</td><td class="n">--onefile main.py</td><td class="n">17 MB</td><td>只填入口文件，同目录的模块会被顺着 import 一起分析</td></tr>
+  </table>
+  <div class="note" style="margin-top:10px">
+    最后一步都是同一个结果：<b>对方双击就能用，不用装 Python、不用配环境</b>。代价是包体积和一点启动时间——单文件模式每次启动都要先把运行时解压到临时目录，所以第一次打开会慢一两秒。
+  </div>
+</section>
+
+<script>
+var SCENES = [
+  {
+    id:"single", tab:"① 单文件打包",
+    title:"① 单文件打包",
+    q:"最基础的场景：一个只用标准库的小工具（比如「读心术」），想发给别人双击就能玩，但对方电脑上没装 Python。",
+    cmd:'pyinstaller --name "读心术" --onefile 读心术.py',
+    logs:[
+      "18 INFO: PyInstaller: 6.11.0",
+      "21 INFO: Python: 3.11.4",
+      "88 INFO: Analyzing 读心术.py",
+      "31 INFO: Building Analysis because Analysis-00.toc is non existent",
+      "44 INFO: Processing module hooks...",
+      "52 INFO: Analyzing base_library.zip",
+      "96 INFO: Checking PYZ",
+      "102 INFO: Building PYZ (uncompressed) for source 读心术.py",
+      "146 INFO: Building PKG (CArchive) 读心术.exe",
+      "231 INFO: Building EXE from EXE-00.toc",
+      "294 INFO: Copying bootloader EXE to dist\\读心术.exe",
+      "301 INFO: Appending PKG archive to EXE",
+      "312 INFO: Fixing EXE headers"
+    ],
+    out:{ name:"读心术.exe", size:"7.0 MB" },
+    tail:["✓ 构建完成，产物在 dist\\ 目录","提示：单文件模式启动时会先解压运行时，首次打开稍慢"]
+  },
+  {
+    id:"assets", tab:"② 带静态素材",
+    title:"② 依赖静态资源",
+    q:"程序要读同目录的一张图（fish.png）。打包成单文件后，程序是在临时目录里运行的，原来的相对路径全都不对了——界面一片空白，图全丢了。",
+    cmd:'pyinstaller --name "摸鱼神器v2" --onefile --add-data "fish.png;." 摸鱼神器v2.py\n\n# 或者写进 spec：datas=[(\'fish.png\', \'.\')]',
+    logs:[
+      "17 INFO: PyInstaller: 6.11.0",
+      "80 INFO: Analyzing 摸鱼神器v2.py",
+      "84 INFO: Processing module hooks...",
+      "101 INFO: Including data file: fish.png -> .",
+      "112 INFO: Building PYZ (uncompressed)",
+      "158 INFO: Building PKG (CArchive) 摸鱼神器v2.exe",
+      "238 INFO: Building EXE from EXE-00.toc",
+      "296 INFO: Copying bootloader EXE to dist\\摸鱼神器v2.exe",
+      "305 INFO: Appending PKG archive to EXE"
+    ],
+    out:{ name:"摸鱼神器v2.exe", size:"9.9 MB" },
+    tail:[
+      "✓ 构建完成，素材已内嵌进 exe",
+      "关键一行（代码里这样取路径）：",
+      '   base = getattr(sys, "_MEIPASS", os.path.dirname(__file__))',
+      '   img  = os.path.join(base, "fish.png")',
+      "这样打包前后都能找到同一张图，不用改两套代码"
+    ]
+  },
+  {
+    id:"lib", tab:"③ 带第三方库",
+    title:"③ 第三方库（requests / pandas）",
+    q:"代码里 import 了第三方库。打包时依赖没被收全，在自己电脑上能跑，发给别人就报 ModuleNotFoundError: No module named 'pandas'。",
+    cmd:'pyinstaller --name "demo1" --onefile demo1.py                      # 只用了 requests\n\npyinstaller --name "demo02" --onefile --collect-all pandas demo02.py  # 用了 pandas',
+    logs:[
+      "20 INFO: PyInstaller: 6.11.0",
+      "92 INFO: Analyzing demo02.py",
+      "118 INFO: Processing module hooks...",
+      "126 INFO: Loading module hook 'hook-pandas.py'...",
+      "… INFO: 收集 pandas 全部子模块与数据文件",
+      "634 INFO: Building COLLECT ...",
+      "812 INFO: Building PKG (CArchive) demo02.exe",
+      "1904 INFO: Building EXE from EXE-00.toc",
+      "2213 INFO: Appending PKG archive to EXE"
+    ],
+    out:{ name:"demo02.exe（含 pandas）", size:"204 MB" },
+    tail:[
+      "✓ 构建完成",
+      "对比：只用了 requests 的那个（demo1.exe）是 16 MB",
+      "pandas 因为要带上 numpy 和一堆数据文件，直接冲到 204 MB",
+      "结论：工具类尽量别引重库；真要用，就得接受体积"
+    ]
+  },
+  {
+    id:"multi", tab:"④ 多文件项目",
+    title:"④ 多文件项目",
+    q:"项目拆成了好几个文件：入口 main.py，外加 utils.py、config.py。打包时该填哪个？",
+    cmd:'pyinstaller --name "验证码识别" --onefile main.py',
+    logs:[
+      "19 INFO: PyInstaller: 6.11.0",
+      "86 INFO: Analyzing main.py",
+      "91 INFO: Analyzing hidden import 'utils'",
+      "93 INFO: Analyzing hidden import 'config'",
+      "97 INFO: Processing module hooks...",
+      "131 INFO: Building PYZ (uncompressed)",
+      "188 INFO: Building PKG (CArchive) 验证码识别.exe",
+      "262 INFO: Building EXE from EXE-00.toc",
+      "324 INFO: Copying bootloader EXE to dist\\验证码识别.exe"
+    ],
+    out:{ name:"验证码识别.exe", size:"17 MB" },
+    tail:[
+      "✓ 构建完成",
+      "只填入口文件就行：同目录被 import 的模块会被自动顺着分析进去",
+      "不用把 utils.py / config.py 一个个列出来"
+    ]
+  }
+];
+
+var cur = 0, busy = false;
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+
+function renderTabs(){
+  document.getElementById("tabs").innerHTML = SCENES.map(function(s, i){
+    return '<button class="tab' + (i === cur ? " on" : "") + '" data-i="' + i + '">' + esc(s.tab) + "</button>";
+  }).join("");
+}
+function renderScene(){
+  var s = SCENES[cur];
+  document.getElementById("ctitle").textContent = s.title;
+  document.getElementById("cq").textContent = s.q;
+  document.getElementById("ccmd").innerHTML = s.cmd.split("\n").map(function(l){
+    return l.trim().indexOf("#") === 0 ? '<span class="d">' + esc(l) + "</span>" : esc(l);
+  }).join("\n");
+  document.getElementById("result").innerHTML = "";
+  document.getElementById("bstat").textContent = "";
+  document.getElementById("tty").innerHTML = '<span class="dimc">点「开始打包」运行。</span>';
+}
+function addLine(txt, cls){
+  var t = document.getElementById("tty");
+  t.innerHTML += (t.innerHTML.indexOf("dimc") > -1 && t.textContent.indexOf("点「开始打包」") > -1 ? "" : "\n") + '<span class="' + (cls || "") + '">' + esc(txt) + "</span>";
+  t.scrollTop = t.scrollHeight;
+}
+async function build(){
+  if (busy) return;
+  busy = true;
+  var s = SCENES[cur];
+  var btn = document.getElementById("build");
+  btn.disabled = true;
+  document.getElementById("result").innerHTML = "";
+  var tty = document.getElementById("tty");
+  tty.innerHTML = "";
+  document.getElementById("bstat").textContent = "打包中…";
+  tty.innerHTML = '<span class="dimc">$ ' + esc(s.cmd.split("\n")[0]) + "</span>";
+  await sleep(220);
+  for (var i = 0; i < s.logs.length; i++){
+    await sleep(95 + Math.random() * 130);
+    tty.innerHTML += "\n" + esc(s.logs[i]);
+    tty.scrollTop = tty.scrollHeight;
+  }
+  await sleep(200);
+  tty.innerHTML += '\n<span class="hi">' + esc(s.logs.length) + " lines processed.</span>";
+  document.getElementById("bstat").textContent = "完成";
+  for (var k = 0; k < s.tail.length; k++){
+    await sleep(70);
+    tty.innerHTML += "\n" + (s.tail[k].indexOf("✓") === 0
+      ? '<span class="ok">' + esc(s.tail[k]) + "</span>"
+      : s.tail[k].indexOf("关键一行") === 0 || s.tail[k].indexOf("结论") === 0
+        ? '<span class="warn">' + esc(s.tail[k]) + "</span>"
+        : esc(s.tail[k]));
+    tty.scrollTop = tty.scrollHeight;
+  }
+  document.getElementById("result").innerHTML =
+    '<div class="exe"><span class="ic">📦</span><span><span class="nm">' + esc(s.out.name) + "</span>"
+    + '<div class="dim">双击即用 · 不需要装 Python</div></span><span class="sz">' + esc(s.out.size) + "</span></div>";
+  btn.disabled = false;
+  busy = false;
+}
+document.addEventListener("click", function(e){
+  var t = e.target.closest(".tab");
+  if (t && !busy){ cur = +t.dataset.i; renderTabs(); renderScene(); }
+});
+document.getElementById("build").onclick = build;
+renderTabs(); renderScene();
+</script>
+</body>
+</html>

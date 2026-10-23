@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GitHub 热门智能巡检 · 作品集</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23F4482B'/%3E%3Cpath d='M16 5.5l2.7 7.8 7.8 2.7-7.8 2.7L16 26.5l-2.7-7.8L5.5 16l7.8-2.7z' fill='%23fff'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet" />
+<style>
+:root{--paper:#F8F4EC;--ink:#23203a;--ink-soft:#6b6580;--accent:#FFC21A}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;background:var(--paper);color:var(--ink);line-height:1.8;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+
+.bar{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:12px clamp(16px,4vw,40px);background:rgba(248,244,236,.86);backdrop-filter:blur(12px);border-bottom:2px solid var(--ink)}
+.back{font-weight:900;font-size:15px;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:8px 18px;box-shadow:3px 3px 0 var(--ink);transition:.2s}
+.back:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink)}
+.brand{font-family:"DM Mono",monospace;font-weight:500;font-size:14px}
+
+.dhero{margin:64px auto 0;max-width:980px;padding:clamp(26px,4.5vw,48px) clamp(22px,5vw,56px) clamp(24px,4vw,42px);border-radius:0 0 40px 40px;background:var(--accent);color:#fff;border:2px solid var(--ink);border-top:0;position:relative;overflow:hidden}
+.dhero.dark{color:var(--ink)}
+.dhero::after{content:"";position:absolute;right:-40px;top:-40px;width:170px;height:170px;border-radius:50%;background:rgba(255,255,255,.22)}
+.dhero .dcat{position:relative;display:inline-block;font-size:12px;font-weight:900;background:#fff;color:var(--ink);border:2px solid var(--ink);border-radius:999px;padding:3px 14px;transform:rotate(-2deg)}
+.dhero h1{position:relative;font-size:clamp(28px,4.6vw,46px);font-weight:900;line-height:1.1;letter-spacing:-1px;margin:12px 0 6px}
+.dhero .lead{position:relative;font-size:clamp(15px,2vw,18px);opacity:.95;max-width:36em}
+.dtags{position:relative;display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.dtags span{font-size:12px;font-weight:700;border:2px solid currentColor;border-radius:999px;padding:2px 12px}
+
+main{max-width:980px;margin:0 auto;padding:0 clamp(16px,4vw,40px)}
+.stage{background:#fff;border:2px solid var(--ink);border-radius:28px;padding:clamp(12px,2.4vw,20px);margin-top:26px;box-shadow:6px 6px 0 rgba(35,32,58,.12)}
+.stage-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding:2px 6px 12px}
+.stage-head .lab{font-family:"DM Mono",monospace;font-size:12px;letter-spacing:1px;color:var(--ink-soft)}
+.open-btn{font:inherit;font-size:13px;font-weight:900;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:5px 16px;box-shadow:3px 3px 0 var(--ink);transition:.15s;display:inline-block}
+.open-btn:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink)}
+.stage-frame{width:100%;height:min(76vh,680px);border:2px solid var(--ink);border-radius:18px;background:#fff;display:block}
+@media(max-width:640px){.stage-frame{height:80vh}}
+.hint{padding:10px 6px 2px;font-size:13px;color:var(--ink-soft);font-weight:700}
+
+.card{background:#fff;border:2px solid var(--ink);border-radius:28px;padding:clamp(24px,3.6vw,40px);margin-top:26px;box-shadow:6px 6px 0 rgba(35,32,58,.12)}
+.card h2{font-size:clamp(19px,2.6vw,25px);font-weight:900;margin-bottom:14px;display:flex;align-items:center;gap:12px}
+.card h2::before{content:"";width:14px;height:14px;border-radius:5px;background:var(--accent);border:2px solid var(--ink);display:inline-block;flex:none}
+.card .bgline{color:var(--ink-soft);font-size:15px;margin-bottom:12px}
+.card ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.card li{padding-left:30px;position:relative;color:#3a3550;font-size:15px}
+.card li::before{content:"✦";position:absolute;left:4px;top:0;color:var(--accent);font-weight:900}
+.card code{font-family:"DM Mono",monospace;font-size:13px;background:var(--paper);border:2px solid var(--ink);border-radius:8px;padding:1px 8px;white-space:nowrap}
+.card b{font-weight:900}
+.hls{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;padding-top:16px;border-top:2px dashed #eee7da}
+.hls span{font-size:13px;font-weight:700;background:var(--paper);border:2px solid var(--ink);border-radius:999px;padding:4px 14px}
+.hls span::before{content:"✦ ";color:var(--accent)}
+
+/* ---- 桌宠迷你养成 ---- */
+.desk{position:relative;height:min(46vh,340px);border:2px solid var(--ink);border-radius:18px;overflow:hidden;background:linear-gradient(180deg,#cfeaff 0%,#efe6ff 55%,#ffe8cf 100%)}
+.desk::after{content:"";position:absolute;left:0;right:0;bottom:0;height:44px;background:rgba(35,32,58,.08);border-top:2px solid rgba(35,32,58,.15)}
+.pet{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);height:150px;cursor:pointer;filter:drop-shadow(0 8px 0 rgba(35,32,58,.10));animation:bob 2.6s ease-in-out infinite;z-index:2}
+.pet.walk{animation:bob 2.6s ease-in-out infinite, stroll 9s linear infinite alternate}
+@keyframes bob{0%,100%{margin-bottom:0}50%{margin-bottom:10px}}
+@keyframes stroll{0%{left:18%}100%{left:82%}}
+.bubble{position:absolute;left:50%;bottom:208px;transform:translateX(-50%);background:#fff;border:2px solid var(--ink);border-radius:16px;padding:7px 16px;font-weight:700;font-size:14px;box-shadow:3px 3px 0 rgba(35,32,58,.15);white-space:nowrap;z-index:3}
+.bubble::after{content:"";position:absolute;left:50%;bottom:-9px;transform:translateX(-50%) rotate(45deg);width:12px;height:12px;background:#fff;border-right:2px solid var(--ink);border-bottom:2px solid var(--ink)}
+.emo{position:absolute;bottom:190px;font-size:22px;animation:rise 1.2s ease-out forwards;pointer-events:none;z-index:3}
+@keyframes rise{to{transform:translateY(-70px);opacity:0}}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+.stat{background:var(--paper);border:2px solid var(--ink);border-radius:14px;padding:8px 12px}
+.stat .lab{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:5px}
+.track{height:10px;border:2px solid var(--ink);border-radius:99px;background:#fff;overflow:hidden}
+.fill{height:100%;background:var(--accent);transition:width .4s}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.acts .sep{width:2px;height:22px;background:#eee7da;margin:0 4px}
+.pbtn{font:inherit;font-size:13px;font-weight:700;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:5px 14px;cursor:pointer;transition:.15s}
+.pbtn:hover{transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--ink)}
+.pbtn.on{background:var(--accent);color:#fff}
+
+footer{max-width:980px;margin:44px auto 64px;padding:26px clamp(16px,4vw,40px) 0;border-top:2px solid var(--ink);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;color:var(--ink-soft);font-size:14px;font-weight:500}
+footer a{font-weight:900;color:var(--ink);border-bottom:2px solid var(--accent)}
+</style>
+</head>
+<body>
+<nav class="bar">
+  <a class="back" href="../index.html">← 返回作品集</a>
+  <span class="brand">姝姝 · 作品集</span>
+</nav>
+
+<header class="dhero dark">
+  <span class="dcat">AI Agent</span>
+  <h1>GitHub 热门智能巡检</h1>
+  <p class="lead">自动看一遍热门榜，把值得学的项目挑出来打分。</p>
+  <div class="dtags"><span>大模型</span><span>评分</span></div>
+</header>
+
+<main>
+
+  <section class="stage">
+    <div class="stage-head"><span class="lab">LIVE DEMO · 跑一次巡检</span><a class="open-btn" href="demo/trending.html" target="_blank" rel="noreferrer">新窗口打开 ↗</a></div>
+    <iframe class="stage-frame" style="height:min(88vh,860px)" src="demo/trending.html" loading="lazy" title="LIVE DEMO · 跑一次巡检"></iframe>
+    <p class="hint">点「开始巡检」会真的去调 GitHub 接口，把冒头的新项目拉回来（接口拿不到就自动用内置快照），再按四个维度打分、只把高分的写进报告。</p>
+  </section>
+  <section class="card">
+    <h2>关于这个项目</h2>
+    <p class="bgline">想扫一眼 Trending 又懒得一个个点进去，让 AI 代劳。</p>
+    <ul><li>自动打开热门榜，抓下每个项目的标题、描述、语言、Star 数。</li><li>项目连同 README 一起交给大模型，按维度打分并说明值不值得学。</li><li>只把高分项目写进报告，整套流程封装成可复用的技能。</li></ul>
+    <div class="hls"><span>评分维度由提示词方法设计</span><span>报告只留高分不过载</span><span>流程封装成可复用技能</span></div>
+  </section>
+</main>
+
+<footer>
+  <span>姝姝 · 个人作品集</span>
+  <a href="../index.html">← 回到全部作品</a>
+</footer>
+</body>
+</html>
